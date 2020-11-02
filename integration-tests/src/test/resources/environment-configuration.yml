@@ -1,11 +1,11 @@
 credentials:
     # Mainframe credentials are required - see /integration-tests/README.md for instructions
-    user: user
-    password: user
+    user: USER
+    password: validPassword
 gatewayServiceConfiguration:
     scheme: https
-    host: localhost
-    port: 55756
+    host: localhost2
+    port: 55755
     instances: 1
 discoveryServiceConfiguration:
     scheme: https
@@ -17,7 +17,7 @@ discoveryServiceConfiguration:
 discoverableClientConfiguration:
     applId: ZOWEAPPL
 tlsConfiguration:
-    keyAlias: apimtst
+    keyAlias: externalcert
     keyPassword: password
     keyStoreType: PKCS12
     keyStore: ../keystore/localhost/localhost.keystore.p12

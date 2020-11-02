@@ -40,13 +40,13 @@ public class TomcatConfiguration {
         File truststore = new File("keystore/localhost/localhost.truststore.p12");
         connector.setScheme("https");
         connector.setSecure(true);
-        connector.setPort(55756);
+        connector.setPort(55755);
         protocol.setSSLEnabled(true);
         protocol.setKeystoreFile(keystore.getAbsolutePath());
         protocol.setKeystorePass("password");
         protocol.setTruststoreFile(truststore.getAbsolutePath());
         protocol.setTruststorePass("password");
-        protocol.setKeyAlias("apimtst");
+        protocol.setKeyAlias("externalcert");
         protocol.setKeyPass("password");
         return connector;
     }
