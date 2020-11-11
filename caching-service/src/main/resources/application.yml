@@ -1,3 +1,18 @@
+logging:
+    level:
+        ROOT: INFO
+        org.zowe.apiml: INFO
+        org.springframework: WARN
+        com.netflix: WARN
+        com.netflix.discovery: ERROR
+        com.netflix.config: ERROR
+        com.netflix.discovery.shared.transport.decorator.RedirectingEurekaHttpClient: OFF
+        com.netflix.discovery.DiscoveryClient: OFF
+        org.springframework.boot.web.embedded.tomcat.TomcatWebServer: INFO
+        org.apache: WARN  #org.apache.catalina, org.apache.coyote, org.apache.tomcat
+        org.apache.http.conn.ssl.DefaultHostnameVerifier: DEBUG #logs only SSLException
+
+
 spring:
     application:
         name: Caching service

@@ -13,9 +13,7 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.zowe.apiml.caching.exceptions.CachingPayloadException;
 import org.zowe.apiml.caching.model.KeyValue;
@@ -23,7 +21,6 @@ import org.zowe.apiml.caching.service.Storage;
 import org.zowe.apiml.message.core.Message;
 import org.zowe.apiml.message.core.MessageService;
 import org.zowe.apiml.zaasclient.config.DefaultZaasClientConfiguration;
-import org.zowe.apiml.zaasclient.exception.ZaasClientErrorCodes;
 import org.zowe.apiml.zaasclient.exception.ZaasClientException;
 import org.zowe.apiml.zaasclient.service.ZaasClient;
 import org.zowe.apiml.zaasclient.service.ZaasToken;
@@ -31,6 +28,7 @@ import org.zowe.apiml.zaasclient.service.ZaasToken;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Arrays;
+import java.util.Date;
 
 @RestController
 @RequiredArgsConstructor
@@ -197,17 +195,24 @@ public class CachingController {
     }
 
     private ZaasToken queryTokenFromRequest(HttpServletRequest request) throws ZaasClientException {
-        String jwtToken = getJwtTokenFromCookie(request);
-        ZaasToken zaasToken = zaasClient.query(jwtToken);
+//        String jwtToken = getJwtTokenFromCookie(request);
+//        ZaasToken zaasToken = zaasClient.query(jwtToken);
+//
+//        if (zaasToken == null) {
+//            throw new ZaasClientException(ZaasClientErrorCodes.INVALID_JWT_TOKEN, "Queried token is null");
+//        }
+//        if (zaasToken.isExpired()) {
+//            throw new ZaasClientException(ZaasClientErrorCodes.EXPIRED_JWT_EXCEPTION, "Queried token is expired");
+//        }
+//        return zaasToken;
 
-        if (zaasToken == null) {
-            throw new ZaasClientException(ZaasClientErrorCodes.INVALID_JWT_TOKEN, "Queried token is null");
-        }
-        if (zaasToken.isExpired()) {
-            throw new ZaasClientException(ZaasClientErrorCodes.EXPIRED_JWT_EXCEPTION, "Queried token is expired");
-        }
+        //TODO for development purposes, restore the original code!
+        ZaasToken token = new ZaasToken();
+        token.setUserId("apimtst");
+        token.setExpired(false);
+        token.setCreation(new Date());
 
-        return zaasToken;
+        return token;
     }
 
     private String getJwtTokenFromCookie(HttpServletRequest request) {
