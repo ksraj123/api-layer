@@ -7,9 +7,8 @@
  *
  * Copyright Contributors to the Zowe Project.
  */
-package org.zowe.apiml.caching.service.inmemory;
+package org.zowe.apiml.caching.service.vsam;
 
-import com.google.common.annotations.VisibleForTesting;
 import lombok.extern.slf4j.Slf4j;
 import org.zowe.apiml.caching.model.KeyValue;
 import org.zowe.apiml.caching.service.Storage;
@@ -18,17 +17,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Slf4j
-public class InMemoryStorage implements Storage {
+public class VsamStorage implements Storage {
     private Map<String, Map<String, KeyValue>> storage = new HashMap<>();
 
-    public InMemoryStorage() {
-        log.info("Using in-memory storage for the cached data");
-    }
-
-    @VisibleForTesting
-    protected InMemoryStorage(Map<String, Map<String, KeyValue>> storage) {
-        log.info("Using in-memory storage for the cached data");
-        this.storage = storage;
+    public VsamStorage() {
+        log.info("Using VSAM storage for the cached data");
     }
 
     @Override
