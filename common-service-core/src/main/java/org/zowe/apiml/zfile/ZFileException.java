@@ -10,36 +10,28 @@
 
 package org.zowe.apiml.zfile;
 
-public interface ZFileException {
-    int getAbendCode();
+import lombok.Getter;
 
-    int getAbendRc();
+import java.io.IOException;
 
-    int getAllocSvc99Error();
+@Getter
+public class ZFileException extends IOException {
 
-    int getAllocSvc99Info();
+    private String fileName;
+    private String msg;
+    private String errnoMsg;
+    private int errno;
+    private int errno2;
+    private int lastOp;
+    private byte[] amrc_code_bytes;
 
-    byte[] getAmrcBytes();
-
-    int getErrno();
-
-    int getErrno2();
-
-    java.lang.String getErrnoMsg();
-
-    int getErrorCode();
-
-    int getFeedbackFdbk();
-
-    int getFeedbackFtncd();
-
-    int getFeedbackRc();
-
-    java.lang.String getFileName();
-
-    int getLastOp();
-
-    java.lang.String getMessage();
-
-    java.lang.String getSynadMsg();
+    public ZFileException(String fileName, String msg, String errnoMsg, int errno, int errno2, int lastOp, byte[] amrc_code_bytes) {
+        this.fileName = fileName;
+        this.msg = msg;
+        this.errnoMsg = errnoMsg;
+        this.errno = errno;
+        this.errno2 = errno2;
+        this.lastOp = lastOp;
+        this.amrc_code_bytes = amrc_code_bytes;
+    }
 }

@@ -12,9 +12,9 @@ package org.zowe.apiml.caching.service.vsam;
 import lombok.extern.slf4j.Slf4j;
 import org.zowe.apiml.caching.model.KeyValue;
 import org.zowe.apiml.caching.service.Storage;
-import org.zowe.apiml.zfile.ZFile;
+import org.zowe.apiml.util.ClassOrDefaultProxyUtils;
+import org.zowe.apiml.zfile.*;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -32,12 +32,25 @@ public class VsamStorage implements Storage {
 
     public VsamStorage() {
         log.info("Using VSAM storage for the cached data");
-        try {
-            Class<?> clazz = Class.forName("com.ibm.jzos.ZFile");
-            zfile = (ZFile) clazz.getDeclaredConstructor(String.class, String.class).newInstance(filename, options);
-        } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
-            log.error("Error instantiating com.ibm.jzos.ZFile: {}", e.getCause());
+
+        zfile = ClassOrDefaultProxyUtils.createProxy(ZFile.class, "com.ibm.jzos.ZFile",
+            ZFileDummyImpl::new ,
+            new ClassOrDefaultProxyUtils.ByMethodName<>(
+            "com.ibm.jzos.ZFileException", ZFileException.class,
+                "getFileName", "getMessage", "getErrnoMsg", "getErrno", "getErrno2", "getLastOp", "getAmrcBytes"),
+            new ClassOrDefaultProxyUtils.ByMethodName<>(
+                "com.ibm.jzos.RcException", RcException.class,
+                "getMessage", "getRc"),
+            new ClassOrDefaultProxyUtils.ByMethodName<>(
+                "com.ibm.jzos.EnqueueException", EnqueueException.class,
+                "getMessage", "getRc")
+        );
+
+        if (zfile == null) {
+            log.error("ZFile was not instantiated");
+            throw new RuntimeException("ZFile was not instantiated");
+        } else {
+            log.info("ZFile instantiated");
         }
     }
 

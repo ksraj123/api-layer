@@ -14,10 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.*;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -71,9 +68,13 @@ public final class ClassOrDefaultProxyUtils {
         ObjectUtil.requireNotEmpty(implementationClassName, "implementationClassName can't be empty");
         ObjectUtil.requireNotNull(defaultImplementation, "defaultImplementation can't be null");
 
+        //TODO this has to be reworked
+        String filename = "//DD:VSMDATA";
+        String options = "ab+,type=record";
+
         try {
             final Class<?> implementationClazz = Class.forName(implementationClassName);
-            final Object implementation = implementationClazz.getDeclaredConstructor().newInstance();
+            final Object implementation = implementationClazz.getDeclaredConstructor(String.class, String.class).newInstance(filename, options);
             return makeProxy(interfaceClass, implementation, true, exceptionMappings);
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
             log.warn("Implementation {} is not available, it will continue with default one {} : " + e.getLocalizedMessage(), implementationClassName, defaultImplementation);
