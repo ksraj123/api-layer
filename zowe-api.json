@@ -30,7 +30,7 @@
     },
 
     "shellStartCommand": "echo 'Not supported until variable replacement is implemented by Zowe SDK team'",
-    "jobTemplatePath": "config/zowe-api-dev/template-bpxbatch.jcl",
+    "jobTemplatePath": "config/zowe-api-dev/template-caching-jzos.jcl",
     "jobPath": "build/api.jcl",
 
     "configurations": {
