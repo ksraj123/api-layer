@@ -12,7 +12,9 @@ package org.zowe.apiml.caching.service.vsam;
 import lombok.extern.slf4j.Slf4j;
 import org.zowe.apiml.caching.model.KeyValue;
 import org.zowe.apiml.caching.service.Storage;
+import org.zowe.apiml.zfile.ZFile;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,8 +22,23 @@ import java.util.Map;
 public class VsamStorage implements Storage {
     private Map<String, Map<String, KeyValue>> storage = new HashMap<>();
 
+    String filename = "//DD:VSMDATA";
+    String options = "ab+,type=record";
+    int lrecl = 80;
+    int keyLen = 8;
+    ZFile zfile;
+
+
+
     public VsamStorage() {
         log.info("Using VSAM storage for the cached data");
+        try {
+            Class<?> clazz = Class.forName("com.ibm.jzos.ZFile");
+            zfile = (ZFile) clazz.getDeclaredConstructor(String.class, String.class).newInstance(filename, options);
+        } catch (ClassNotFoundException | NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+            log.error("Error instantiating com.ibm.jzos.ZFile: {}", e.getCause());
+        }
     }
 
     @Override

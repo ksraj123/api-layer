@@ -24,7 +24,7 @@
 //JAVAJVM  EXEC PGM=JVMLDM&VERSION,REGION=&REGSIZE,
 //   PARM='&LEPARM/&LOGLVL -jar &JAR &ARGS'
 //STEPLIB  DD   DISP=SHR,DSN=&LIBRARY
-//VSMDATA  DD   DISP=SHR,DSN=APIMTST.ZOWE.VSAM.CACHE
+//VSMDATA  DD   DISP=SHR,DSN=JANDA06.CACHE
 //SYSPRINT DD   SYSOUT=*  < System stdout
 //SYSOUT   DD   SYSOUT=*,OUTLIM=1000000  < System stderr
 //STDOUT   DD   SYSOUT=*,OUTLIM=1000000  < Java System.out
@@ -113,6 +113,7 @@ IJO="$IJO -Xquickstart"
 
 # Application configuration:
 IJO="$IJO -Xquickstart"
+IJO="$IJO -Dcaching.storage.mode=vsam "
 IJO="$IJO -Dapiml.service.hostname=${ZOWE_EXPLORER_HOST} "
 IJO="$IJO -Dapiml.service.port=${CACHING_PORT} "
 IJO="$IJO -Dapiml.service.serviceIpAddress=${ZOWE_IP_ADDRESS} "
