@@ -12,6 +12,7 @@ export ZOWE_IP_ADDRESS=0.0.0.0
 export DISCOVERY_PORT=$((basePort+1))
 export CATALOG_PORT=$((basePort+2))
 export DISCOVERABLECLIENT_PORT=$((basePort+3))
+export CACHING_PORT=$((basePort+4))
 export GATEWAY_PORT=$basePort
 export STATIC_DEF_CONFIG_DIR=$dir/apidef
 export VERIFY_CERTIFICATES=true
@@ -33,10 +34,12 @@ echo " "
 env
 echo "******************* /ENVIRONMENT  *******************"
 
-
-echo "Inflating dependencies"
-cd $dir/components/api-mediation/lib
-jar -xvf libraries.zip
+if [[ -s ${dir}"/components/api-mediation/lib/libraries.zip" ]]
+then
+    echo "Inflating dependencies"
+    cd $dir/components/api-mediation/lib
+    jar -xvf libraries.zip
+fi
 echo " "
 
 echo "Running API Mediation Layer"
