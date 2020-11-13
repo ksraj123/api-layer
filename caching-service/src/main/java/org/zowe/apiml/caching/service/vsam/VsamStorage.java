@@ -36,27 +36,16 @@ public class VsamStorage implements Storage {
 
     @Override
     public KeyValue create(String serviceId, KeyValue toCreate) {
-        log.info("Writing ServiceId:KeyValue: {}: {}, {}", serviceId, toCreate.getKey(), toCreate.getValue());
+        log.info("Writing record: {}: {}, {}", serviceId, toCreate.getKey(), toCreate.getValue());
         ZFile zfile = openZfile();
         try {
-
-            byte[] record = padToLength("AAAAAAAARecord 1", lrecl)
+            byte[] record = padToLength(getCompositeKey(serviceId, toCreate) + "Record 1", lrecl)
                 .getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
-
             log.info("Writing Record: {}", record.toString());
             zfile.write(record);
-
-            byte[] recBuf = new byte[lrecl];
-            boolean found = zfile.locate(record, 0, keyLen, ZFileConstants.LOCATE_KEY_EQ);
-            log.info("Record found: {}", found);
-
-            zfile.read(recBuf);
-            log.info("RecBuf: {}", recBuf);
-
         } catch (ZFileException | UnsupportedEncodingException e) {
             log.error(String.valueOf(e.getCause()));
             log.error(e.toString());
-
             e.printStackTrace();
         } finally {
             closeZfile(zfile);
@@ -67,29 +56,26 @@ public class VsamStorage implements Storage {
 
     @Override
     public KeyValue read(String serviceId, String key) {
-        log.info("Reading ServiceId:Key: {}: {}", serviceId, key);
+        log.info("Reading Record: {}: {}", serviceId, key);
         KeyValue result = null;
         ZFile zfile = openZfile();
-
         try {
             byte[] recBuf = new byte[lrecl];
-            byte[] record = padToLength("AAAAAAAARecord 1", lrecl)
-                .getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
-            boolean found = zfile.locate(record, 0, keyLen, ZFileConstants.LOCATE_KEY_EQ);
+            boolean found = zfile.locate(getCompositeKey(serviceId, key).getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE),
+                ZFileConstants.LOCATE_KEY_EQ);
             log.info("Record found: {}", found);
-
             zfile.read(recBuf);
             log.info("RecBuf: {}", recBuf);
-
-            result = new KeyValue("KEY", recBuf.toString());
-
+            String value = new String(recBuf, ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
+            log.info("ConvertedValue: {}", value);
+            result = new KeyValue(key, value);
         } catch (Exception e) {
+            log.error(String.valueOf(e.getCause()));
             log.error(e.toString());
             e.printStackTrace();
         } finally {
             closeZfile(zfile);
         }
-
         return result;
     }
 
@@ -97,7 +83,6 @@ public class VsamStorage implements Storage {
     public KeyValue update(String serviceId, KeyValue toUpdate) {
         log.info("Updating ServiceId:Key: {}: {}", serviceId, toUpdate);
         ZFile zfile = openZfile();
-
         try {
             byte[] recBuf = new byte[lrecl];
             byte[] record = padToLength("AAAAAAAARecord 1 updated", lrecl)
@@ -205,5 +190,31 @@ public class VsamStorage implements Storage {
         } catch (ZFileException e) {
             log.error("Closing ZFile failed");
         }
+    }
+
+    public String getCompositeKey(String serviceId, KeyValue keyValue) {
+        return getCompositeKey(serviceId, keyValue.getKey());
+    }
+
+    public String getCompositeKey(String serviceId, String key) {
+
+        int sidCapacity = 4;
+        int keyCapacity = 4;
+
+        StringBuilder b = new StringBuilder(keyLen);
+
+        if (serviceId.length() > sidCapacity) {
+            b.append(serviceId, 0, sidCapacity);
+        } else {
+            b.append(padToLength(serviceId, sidCapacity));
+        }
+
+        if (key.length() > keyCapacity) {
+            b.append(key, 0, keyCapacity);
+        } else {
+            b.append(padToLength(key, keyCapacity));
+        }
+
+        return b.toString();
     }
 }
