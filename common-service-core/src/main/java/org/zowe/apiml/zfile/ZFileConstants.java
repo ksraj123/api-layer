@@ -8,7 +8,7 @@
  * Copyright Contributors to the Zowe Project.
  */
 
-package org.zowe.apiml.caching.service.vsam;
+package org.zowe.apiml.zfile;
 
 public class ZFileConstants {
     public static final java.lang.String DEFAULT_EBCDIC_CODE_PAGE = "IBM-1047";
