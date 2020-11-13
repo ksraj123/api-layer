@@ -12,78 +12,26 @@ package org.zowe.apiml.zfile;
 
 public interface ZFile {
 
-    void close();
+    void close() throws ZFileException, RcException;
 
-    void delrec();
+    void delrec() throws ZFileException;
 
-    void doDeqAndUnalloc();
+    boolean locate(byte[] key, int options) throws ZFileException;
 
-    void flush();
+    boolean locate(byte[] key, int offset, int length, int options) throws ZFileException;
 
-    java.lang.String getActualFilename();
+    boolean locate(long recordNumberOrRBA, int options) throws ZFileException;
 
-    int getBlksize();
+    int read(byte[] buf) throws ZFileException;
 
-    long getByteCount();
+    int read(byte[] buf, int offset, int len) throws ZFileException;
 
-    int getDevice();
+    int update(byte[] buf) throws ZFileException;
 
-    int getDsorg();
+    int update(byte[] buf, int offset, int length) throws ZFileException;
 
-    java.lang.String getFilename();
+    void write(byte[] buf) throws ZFileException;
 
-    java.io.InputStream getInputStream();
-
-    int getLrecl();
-
-    int getModeFlags();
-
-    int getOpenMode();
-
-    java.lang.String getOptions();
-
-    java.io.OutputStream getOutputStream();
-
-    byte[] getPos();
-
-    java.lang.String getRecfm();
-
-    int getRecfmBits();
-
-    long getRecordCount();
-
-    int getVsamKeyLength();
-
-    long getVsamRBA();
-
-    int getVsamType();
-
-    boolean locate(byte[] key, int options);
-
-    boolean locate(byte[] key, int offset, int length, int options);
-
-    boolean locate(long recordNumberOrRBA, int options);
-
-    int read(byte[] buf);
-
-    int read(byte[] buf, int offset, int len);
-
-    void reopen(java.lang.String options);
-
-    void rewind();
-
-    void seek(long offset, int origin);
-
-    void setPos(byte[] position);
-
-    long tell();
-
-    int update(byte[] buf);
-
-    int update(byte[] buf, int offset, int length);
-
-    void write(byte[] buf);
-
-    void write(byte[] buf, int offset, int len);
+    void write(byte[] buf, int offset, int len) throws ZFileException;
 
 }
