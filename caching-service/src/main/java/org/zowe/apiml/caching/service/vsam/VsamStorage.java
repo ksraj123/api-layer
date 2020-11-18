@@ -35,18 +35,19 @@ public class VsamStorage implements Storage {
     }
 
     @Override
+    //TODO create does not overwrite existing record valies, but succeeds anyway
     public KeyValue create(String serviceId, KeyValue toCreate) {
         log.info("Writing record: {}: {}, {}", serviceId, toCreate.getKey(), toCreate.getValue());
         ZFile zfile = openZfile();
         try {
-            byte[] record = padToLength(getCompositeKey(serviceId, toCreate) + "Record 1", lrecl)
+            byte[] record = padToLength(getCompositeKey(serviceId, toCreate) + toCreate.getValue(), lrecl)
                 .getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
             log.info("Writing Record: {}", record.toString());
             zfile.write(record);
-        } catch (ZFileException | UnsupportedEncodingException e) {
-            log.error(String.valueOf(e.getCause()));
+        } catch (ZFileException e) {
             log.error(e.toString());
-            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            log.error("Unsupported encoding: {}", ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
         } finally {
             closeZfile(zfile);
         }
@@ -68,11 +69,11 @@ public class VsamStorage implements Storage {
             log.info("RecBuf: {}", recBuf);
             String value = new String(recBuf, ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
             log.info("ConvertedValue: {}", value);
-            result = new KeyValue(key, value);
-        } catch (Exception e) {
-            log.error(String.valueOf(e.getCause()));
+            result = new KeyValue(key, value.trim());
+        } catch (ZFileException e) {
             log.error(e.toString());
-            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            log.error("Unsupported encoding: {}", ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
         } finally {
             closeZfile(zfile);
         }
@@ -81,23 +82,20 @@ public class VsamStorage implements Storage {
 
     @Override
     public KeyValue update(String serviceId, KeyValue toUpdate) {
-        log.info("Updating ServiceId:Key: {}: {}", serviceId, toUpdate);
+        log.info("Updating Record: {}: {}", serviceId, toUpdate);
         ZFile zfile = openZfile();
         try {
             byte[] recBuf = new byte[lrecl];
-            byte[] record = padToLength("AAAAAAAARecord 1 updated", lrecl)
-                .getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
 
-            //TODO this form of locate seems nicer
-//            byte[] keybuf = new byte[keyLen];
-//            System.arraycopy(rec_2, 0, keybuf, 0, keyLen);
-//            check("Locate rec_2",
-//                zfile.locate(keybuf, ZFile.LOCATE_KEY_EQ));
+            boolean found = zfile.locate(getCompositeKey(serviceId, toUpdate.getKey()).getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE),
+                ZFileConstants.LOCATE_KEY_EQ);
 
-            boolean found = zfile.locate(record, 0, keyLen, ZFileConstants.LOCATE_KEY_EQ);
             log.info("Record found: {}", found);
 
             if (found) {
+                zfile.read(recBuf); //has to be read before update/delete
+                byte[] record = padToLength(getCompositeKey(serviceId, toUpdate) + toUpdate.getValue(), lrecl)
+                    .getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
                 int nUpdated = zfile.update(record);
                 log.info("record updated: {}", toUpdate);
             } else {
@@ -107,9 +105,11 @@ public class VsamStorage implements Storage {
             // TODO exception?
 
 
-        } catch (Exception e) {
+        } catch (ZFileException e) {
             log.error(e.toString());
-            e.printStackTrace();
+            //TODO what to return here if it doesn't work
+        } catch (UnsupportedEncodingException e) {
+            log.error("Unsupported encoding: {}", ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
         } finally {
             closeZfile(zfile);
         }
@@ -124,12 +124,14 @@ public class VsamStorage implements Storage {
         ZFile zfile = openZfile();
 
         try {
-            //byte[] keybuf = new byte[keyLen];
-            String key = "AAAAAAAA";
-            boolean found = zfile.locate(key.getBytes(), ZFileConstants.LOCATE_KEY_EQ);
+            byte[] recBuf = new byte[lrecl];
+
+            boolean found = zfile.locate(getCompositeKey(serviceId, toDelete).getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE),
+                ZFileConstants.LOCATE_KEY_EQ);
             log.info("Record found: {}", found);
 
             if (found) {
+                zfile.read(recBuf); //has to be read before update/delete
                 zfile.delrec();
                 log.info("record deleted: {}", toDelete);
             } else {
@@ -139,9 +141,11 @@ public class VsamStorage implements Storage {
             // TODO exception?
 
 
-        } catch (Exception e) {
+        } catch (ZFileException e) {
             log.error(e.toString());
-            e.printStackTrace();
+            //TODO what to return here if it doesn't work
+        } catch (UnsupportedEncodingException e) {
+            log.error("Unsupported encoding: {}", ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
         } finally {
             closeZfile(zfile);
         }

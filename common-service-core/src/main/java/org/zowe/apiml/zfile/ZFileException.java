@@ -11,10 +11,12 @@
 package org.zowe.apiml.zfile;
 
 import lombok.Getter;
+import lombok.ToString;
 
 import java.io.IOException;
 
 @Getter
+@ToString
 public class ZFileException extends IOException {
 
     private String fileName;
