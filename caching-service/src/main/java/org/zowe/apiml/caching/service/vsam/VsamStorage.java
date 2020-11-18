@@ -21,6 +21,9 @@ import java.util.Map;
 
 @Slf4j
 public class VsamStorage implements Storage {
+
+    public static int RC_INVALID_VSAM_FILE = 1;
+
     private Map<String, Map<String, KeyValue>> storage = new HashMap<>();
 
     String filename = "//DD:VSMDATA";
@@ -28,18 +31,30 @@ public class VsamStorage implements Storage {
     int lrecl = 80;
     int keyLen = 8;
 
-
     public VsamStorage() {
         log.info("Using VSAM storage for the cached data");
 
+        ZFile zfile = null;
+        try {
+            zfile = openZfile();
+        } catch (ZFileException | RcException e) {
+            log.error("Problem initializing VSAM storage, opening of {} in mode {} has failed", filename, options);
+            log.error(e.toString());
+            System.exit(RC_INVALID_VSAM_FILE);
+        } finally {
+            if (zfile != null) {
+                closeZfile(zfile);
+            }
+        }
     }
 
     @Override
     //TODO create does not overwrite existing record valies, but succeeds anyway
     public KeyValue create(String serviceId, KeyValue toCreate) {
         log.info("Writing record: {}: {}, {}", serviceId, toCreate.getKey(), toCreate.getValue());
-        ZFile zfile = openZfile();
+        ZFile zfile = null;
         try {
+            zfile = openZfile();
             byte[] record = padToLength(getCompositeKey(serviceId, toCreate) + toCreate.getValue(), lrecl)
                 .getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
             log.info("Writing Record: {}", record.toString());
@@ -59,8 +74,9 @@ public class VsamStorage implements Storage {
     public KeyValue read(String serviceId, String key) {
         log.info("Reading Record: {}: {}", serviceId, key);
         KeyValue result = null;
-        ZFile zfile = openZfile();
+        ZFile zfile = null;
         try {
+            zfile = openZfile();
             byte[] recBuf = new byte[lrecl];
             boolean found = zfile.locate(getCompositeKey(serviceId, key).getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE),
                 ZFileConstants.LOCATE_KEY_EQ);
@@ -83,8 +99,9 @@ public class VsamStorage implements Storage {
     @Override
     public KeyValue update(String serviceId, KeyValue toUpdate) {
         log.info("Updating Record: {}: {}", serviceId, toUpdate);
-        ZFile zfile = openZfile();
+        ZFile zfile = null;
         try {
+            zfile = openZfile();
             byte[] recBuf = new byte[lrecl];
 
             boolean found = zfile.locate(getCompositeKey(serviceId, toUpdate.getKey()).getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE),
@@ -121,9 +138,10 @@ public class VsamStorage implements Storage {
     public KeyValue delete(String serviceId, String toDelete) {
 
         log.info("Deleting ServiceId:Key: {}: {}", serviceId, toDelete);
-        ZFile zfile = openZfile();
+        ZFile zfile = null;
 
         try {
+            zfile = openZfile();
             byte[] recBuf = new byte[lrecl];
 
             boolean found = zfile.locate(getCompositeKey(serviceId, toDelete).getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE),
@@ -173,7 +191,7 @@ public class VsamStorage implements Storage {
         return sb.toString();
     }
 
-    public ZFile openZfile() {
+    public ZFile openZfile() throws ZFileException, RcException {
         return ClassOrDefaultProxyUtils.createProxy(ZFile.class, "com.ibm.jzos.ZFile",
             ZFileDummyImpl::new,
             new ClassOrDefaultProxyUtils.ByMethodName<>(
@@ -189,10 +207,12 @@ public class VsamStorage implements Storage {
     }
 
     public void closeZfile(ZFile zfile) {
-        try {
-            zfile.close();
-        } catch (ZFileException e) {
-            log.error("Closing ZFile failed");
+        if (zfile != null) {
+            try {
+                zfile.close();
+            } catch (ZFileException e) {
+                log.error("Closing ZFile failed");
+            }
         }
     }
 

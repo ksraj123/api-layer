@@ -11,15 +11,14 @@
 package org.zowe.apiml.zfile;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
-@RequiredArgsConstructor
 @Getter
+@ToString
 public class EnqueueException extends RcException {
 
     public EnqueueException(String msg, int rc) {
-        this.msg = msg;
-        this.rc = rc;
+        super(msg, rc);
     }
 
 }

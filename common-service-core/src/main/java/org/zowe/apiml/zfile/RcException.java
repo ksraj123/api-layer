@@ -11,10 +11,10 @@
 package org.zowe.apiml.zfile;
 
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 
-@RequiredArgsConstructor
 @Getter
+@ToString
 public class RcException extends RuntimeException {
     protected String msg;
     protected int rc;
