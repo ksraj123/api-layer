@@ -51,16 +51,27 @@ public class VsamStorage implements Storage {
     }
 
     @Override
-    // TODO create succeeds on existing record but does not update it. It throws ZFileException which fails silently in this code
     public KeyValue create(String serviceId, KeyValue toCreate) {
         log.info("Writing record: {}|{}|{}", serviceId, toCreate.getKey(), toCreate.getValue());
+        KeyValue result = null;
         ZFile zfile = null;
         try {
             zfile = openZfile();
-            byte[] record = padToLength(getCompositeKey(serviceId, toCreate) + toCreate.getValue(), lrecl)
-                .getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
-            log.info("Writing Record: {}", record.toString());
-            zfile.write(record);
+
+            boolean found = zfile.locate(getCompositeKey(serviceId, toCreate.getKey()).getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE),
+                ZFileConstants.LOCATE_KEY_EQ);
+
+            if (!found) {
+                byte[] record = padToLength(getCompositeKey(serviceId, toCreate) + toCreate.getValue(), lrecl)
+                    .getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
+                log.info("Writing Record: {}", new String(record, ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE));
+                zfile.write(record);
+                result = toCreate;
+            } else {
+                log.error("The record already exists and will not be created. Use update instead.");
+            }
+
+
         } catch (ZFileException e) {
             log.error(e.toString());
         } catch (UnsupportedEncodingException e) {
@@ -69,7 +80,7 @@ public class VsamStorage implements Storage {
             closeZfile(zfile);
         }
 
-        return toCreate;
+        return result;
     }
 
     @Override
