@@ -190,7 +190,54 @@ public class VsamStorage implements Storage {
 
     @Override
     public Map<String, KeyValue> readForService(String serviceId) {
-        throw new UnsupportedOperationException("Not Implemented");
+
+        log.info("Reading All Records: {}|{}|{}", serviceId, "-", "-");
+        Map<String, KeyValue> result = new HashMap<>();
+        ZFile zfile = null;
+        try {
+            zfile = openZfile();
+            byte[] recBuf = new byte[lrecl];
+
+            boolean found;
+            log.info("Attempt to find key in KEY_GE mode: {}", getCompositeKey(serviceId, ""));
+            found = zfile.locate(getCompositeKey(serviceId, "").getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE),
+                ZFileConstants.LOCATE_KEY_GE);
+            log.info("Record found: {}", found);
+
+            int overflowProtection = 1000;
+            while (found) {
+                int nread = zfile.read(recBuf);
+                log.info("RecBuf: {}", recBuf);
+                log.info("nread: {}", nread);
+                String value = new String(recBuf, ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
+                log.info("ConvertedStringValue: {}", value);
+
+                //TODO record key has SID in int, separate with introduction of hashed keys
+                KeyValue record = new KeyValue(value.substring(0, keyLen), value.substring(keyLen).trim());
+
+                if (record.getKey().startsWith(serviceId)) {
+                    log.info("This is a match, adding to result");
+                    result.put(record.getKey(), record);
+                } else {
+                    log.info("This is not a match, stopping the retrieval");
+                    found = false;
+                }
+
+                overflowProtection--;
+                if (overflowProtection <= 0) {
+                    log.error("Maximum number of records retrieved, stopping the retrieval");
+                    break;
+                }
+            }
+        } catch (ZFileException e) {
+            log.error(e.toString());
+        } catch (UnsupportedEncodingException e) {
+            log.error("Unsupported encoding: {}", ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
+        } finally {
+            closeZfile(zfile);
+        }
+
+        return result;
     }
 
     /**
