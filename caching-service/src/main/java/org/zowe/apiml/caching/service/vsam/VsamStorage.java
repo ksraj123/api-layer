@@ -114,6 +114,7 @@ public class VsamStorage implements Storage {
     @Override
     public KeyValue update(String serviceId, KeyValue toUpdate) {
         log.info("Updating Record: {}|{}|{}", serviceId, toUpdate.getKey(), toUpdate.getValue());
+        KeyValue result = null;
         ZFile zfile = null;
         try {
             zfile = openZfile();
@@ -130,9 +131,9 @@ public class VsamStorage implements Storage {
                     .getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
                 int nUpdated = zfile.update(record);
                 log.info("record updated: {}", toUpdate);
+                result = toUpdate;
             } else {
                 log.error("No record updated because no record found with key");
-                return null;
             }
             // TODO exception?
 
@@ -146,13 +147,14 @@ public class VsamStorage implements Storage {
             closeZfile(zfile);
         }
 
-        return toUpdate;
+        return result;
     }
 
     @Override
     public KeyValue delete(String serviceId, String toDelete) {
 
         log.info("Deleting Record: {}|{}|{}", serviceId, toDelete, "-");
+        KeyValue result = null;
         ZFile zfile = null;
 
         try {
@@ -167,9 +169,9 @@ public class VsamStorage implements Storage {
                 zfile.read(recBuf); //has to be read before update/delete
                 zfile.delrec();
                 log.info("record deleted: {}", toDelete);
+                result = new KeyValue(toDelete, "DELETED");
             } else {
                 log.error("No record deleted because no record found with key");
-                return null;
             }
             // TODO exception?
 
@@ -183,17 +185,12 @@ public class VsamStorage implements Storage {
             closeZfile(zfile);
         }
 
-        return new KeyValue(toDelete, "DELETED");
+        return result;
     }
 
     @Override
     public Map<String, KeyValue> readForService(String serviceId) {
         throw new UnsupportedOperationException("Not Implemented");
-    }
-
-    private boolean isKeyNotInCache(String serviceId, String keyToTest) {
-        Map<String, KeyValue> serviceSpecificStorage = storage.get(serviceId);
-        return serviceSpecificStorage == null || serviceSpecificStorage.get(keyToTest) == null;
     }
 
     /**
