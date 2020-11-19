@@ -31,25 +31,26 @@ public class VsamStorage implements Storage {
     int lrecl = 80;
     int keyLen = 8;
 
-    public VsamStorage() {
+    public VsamStorage(boolean isTestScope) {
         log.info("Using VSAM storage for the cached data");
 
-        ZFile zfile = null;
-        try {
-            zfile = openZfile();
-        } catch (ZFileException | RcException e) {
-            log.error("Problem initializing VSAM storage, opening of {} in mode {} has failed", filename, options);
-            log.error(e.toString());
-            System.exit(RC_INVALID_VSAM_FILE);
-        } finally {
-            if (zfile != null) {
-                closeZfile(zfile);
+        if (!isTestScope) {
+            ZFile zfile = null;
+            try {
+                zfile = openZfile();
+            } catch (ZFileException | RcException e) {
+                log.error("Problem initializing VSAM storage, opening of {} in mode {} has failed", filename, options);
+                log.error(e.toString());
+                System.exit(RC_INVALID_VSAM_FILE);
+            } finally {
+                if (zfile != null) {
+                    closeZfile(zfile);
+                }
             }
         }
     }
 
     @Override
-    //TODO create does not overwrite existing record valies, but succeeds anyway
     public KeyValue create(String serviceId, KeyValue toCreate) {
         log.info("Writing record: {}: {}, {}", serviceId, toCreate.getKey(), toCreate.getValue());
         ZFile zfile = null;
@@ -192,8 +193,10 @@ public class VsamStorage implements Storage {
     }
 
     public ZFile openZfile() throws ZFileException, RcException {
-        return ClassOrDefaultProxyUtils.createProxy(ZFile.class, "com.ibm.jzos.ZFile",
+        return ClassOrDefaultProxyUtils.createProxyByConstructor(ZFile.class, "com.ibm.jzos.ZFile",
             ZFileDummyImpl::new,
+            new Class[] {String.class, String.class},
+            new Object[] {filename, options},
             new ClassOrDefaultProxyUtils.ByMethodName<>(
                 "com.ibm.jzos.ZFileException", ZFileException.class,
                 "getFileName", "getMessage", "getErrnoMsg", "getErrno", "getErrno2", "getLastOp", "getAmrcBytes"),

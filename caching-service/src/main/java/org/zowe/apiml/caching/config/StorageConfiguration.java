@@ -23,7 +23,7 @@ public class StorageConfiguration {
     @ConditionalOnProperty(name = "caching.storage.mode", havingValue = "vsam")
     @Bean
     public Storage vsam() {
-        return new VsamStorage();
+        return new VsamStorage(false);
     }
 
     @ConditionalOnMissingBean(Storage.class)

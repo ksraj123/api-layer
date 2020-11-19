@@ -18,7 +18,7 @@ import static org.hamcrest.Matchers.is;
 
 class VsamStorageTest {
 
-    VsamStorage underTest = new VsamStorage();
+    VsamStorage underTest = new VsamStorage(true);
 
     @Test
     void createCompositeKey() {
