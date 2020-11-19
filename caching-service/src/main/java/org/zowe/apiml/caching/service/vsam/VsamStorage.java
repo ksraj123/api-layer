@@ -51,8 +51,9 @@ public class VsamStorage implements Storage {
     }
 
     @Override
+    // TODO create succeeds on existing record but does not update it. It throws ZFileException which fails silently in this code
     public KeyValue create(String serviceId, KeyValue toCreate) {
-        log.info("Writing record: {}: {}, {}", serviceId, toCreate.getKey(), toCreate.getValue());
+        log.info("Writing record: {}|{}|{}", serviceId, toCreate.getKey(), toCreate.getValue());
         ZFile zfile = null;
         try {
             zfile = openZfile();
@@ -73,7 +74,7 @@ public class VsamStorage implements Storage {
 
     @Override
     public KeyValue read(String serviceId, String key) {
-        log.info("Reading Record: {}: {}", serviceId, key);
+        log.info("Reading Record: {}|{}|{}", serviceId, key, "-");
         KeyValue result = null;
         ZFile zfile = null;
         try {
@@ -82,11 +83,13 @@ public class VsamStorage implements Storage {
             boolean found = zfile.locate(getCompositeKey(serviceId, key).getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE),
                 ZFileConstants.LOCATE_KEY_EQ);
             log.info("Record found: {}", found);
-            zfile.read(recBuf);
-            log.info("RecBuf: {}", recBuf);
-            String value = new String(recBuf, ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
-            log.info("ConvertedValue: {}", value);
-            result = new KeyValue(key, value.trim());
+            if (found) {
+                zfile.read(recBuf);
+                log.info("RecBuf: {}", recBuf);
+                String value = new String(recBuf, ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
+                log.info("ConvertedStringValue: {}", value);
+                result = new KeyValue(key, value.substring(keyLen).trim());
+            }
         } catch (ZFileException e) {
             log.error(e.toString());
         } catch (UnsupportedEncodingException e) {
@@ -99,7 +102,7 @@ public class VsamStorage implements Storage {
 
     @Override
     public KeyValue update(String serviceId, KeyValue toUpdate) {
-        log.info("Updating Record: {}: {}", serviceId, toUpdate);
+        log.info("Updating Record: {}|{}|{}", serviceId, toUpdate.getKey(), toUpdate.getValue());
         ZFile zfile = null;
         try {
             zfile = openZfile();
@@ -138,7 +141,7 @@ public class VsamStorage implements Storage {
     @Override
     public KeyValue delete(String serviceId, String toDelete) {
 
-        log.info("Deleting ServiceId:Key: {}: {}", serviceId, toDelete);
+        log.info("Deleting Record: {}|{}|{}", serviceId, toDelete, "-");
         ZFile zfile = null;
 
         try {
