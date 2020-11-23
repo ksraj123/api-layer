@@ -47,7 +47,7 @@ public class VsamStorage implements Storage {
                 zfile = openZfile();
                 log.info("VSAM file being used: {}", zfile.getActualFilename());
 
-                byte[] record = padToLength(getCompositeKey("dele", "teme") + "warmup record, delete it", lrecl)
+                byte[] record = VsamUtils.padToLength(getCompositeKey("dele", "teme") + "warmup record, delete it", lrecl)
                     .getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
                 log.info("Writing Record: {}", new String(record, ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE));
                 zfile.write(record);
@@ -85,7 +85,7 @@ public class VsamStorage implements Storage {
                 ZFileConstants.LOCATE_KEY_EQ);
 
             if (!found) {
-                byte[] record = padToLength(getCompositeKey(serviceId, toCreate) + toCreate.getValue(), lrecl)
+                byte[] record = VsamUtils.padToLength(getCompositeKey(serviceId, toCreate) + toCreate.getValue(), lrecl)
                     .getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
                 log.info("Writing Record: {}", new String(record, ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE));
                 zfile.write(record);
@@ -150,7 +150,7 @@ public class VsamStorage implements Storage {
 
             if (found) {
                 zfile.read(recBuf); //has to be read before update/delete
-                byte[] record = padToLength(getCompositeKey(serviceId, toUpdate) + toUpdate.getValue(), lrecl)
+                byte[] record = VsamUtils.padToLength(getCompositeKey(serviceId, toUpdate) + toUpdate.getValue(), lrecl)
                     .getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
                 int nUpdated = zfile.update(record);
                 log.info("record updated: {}", toUpdate);
@@ -263,16 +263,6 @@ public class VsamStorage implements Storage {
         return result;
     }
 
-    /**
-     * Pad a string with spaces to a specified length
-     */
-    static String padToLength(String s, int len) {
-        StringBuffer sb = new StringBuffer(len);
-        sb.append(s);
-        for (int i = s.length(); i < len; i++) sb.append(' ');
-        return sb.toString();
-    }
-
     public ZFile openZfile() throws ZFileException, RcException {
         return ClassOrDefaultProxyUtils.createProxyByConstructor(ZFile.class, "com.ibm.jzos.ZFile",
             ZFileDummyImpl::new,
@@ -315,13 +305,13 @@ public class VsamStorage implements Storage {
         if (serviceId.length() > sidCapacity) {
             b.append(serviceId, 0, sidCapacity);
         } else {
-            b.append(padToLength(serviceId, sidCapacity));
+            b.append(VsamUtils.padToLength(serviceId, sidCapacity));
         }
 
         if (key.length() > keyCapacity) {
             b.append(key, 0, keyCapacity);
         } else {
-            b.append(padToLength(key, keyCapacity));
+            b.append(VsamUtils.padToLength(key, keyCapacity));
         }
 
         return b.toString();
