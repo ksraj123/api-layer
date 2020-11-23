@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.zowe.apiml.caching.model.KeyValue;
 import org.zowe.apiml.caching.service.Storage;
 import org.zowe.apiml.util.ClassOrDefaultProxyUtils;
+import org.zowe.apiml.util.ObjectUtil;
 import org.zowe.apiml.zfile.*;
 
 import java.io.UnsupportedEncodingException;
@@ -26,12 +27,16 @@ public class VsamStorage implements Storage {
 
     private Map<String, Map<String, KeyValue>> storage = new HashMap<>();
 
-    String filename = "//DD:VSMDATA";
+    private String filename;
+
     String options = "ab+,type=record";
     int lrecl = 300; //TODO this should be dynamic, the padding does not feel right
     int keyLen = 128;
 
-    public VsamStorage(boolean isTestScope) {
+    public VsamStorage(String filename, boolean isTestScope) {
+        this.filename = filename;
+        ObjectUtil.requireNotNull(filename, "Vsam filename cannot be null");
+        ObjectUtil.requireNotEmpty(filename, "Vsam filename cannot be empty");
         log.info("Using VSAM storage for the cached data");
 
         if (!isTestScope) {
@@ -230,7 +235,13 @@ public class VsamStorage implements Storage {
                 String value = new String(recBuf, ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
                 log.info("ConvertedStringValue: {}", value);
 
-                //TODO record key has SID in int, separate with introduction of hashed keys
+                if (nread < 0) {
+                    log.info("nread is < 0, stopping the retrieval");
+                    found = false;
+                    continue;
+                }
+
+                //TODO record key has SID in it, separate with introduction of hashed keys
                 KeyValue record = new KeyValue(value.substring(0, keyLen), value.substring(keyLen).trim());
 
                 if (record.getKey().startsWith(serviceId)) {

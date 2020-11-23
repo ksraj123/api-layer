@@ -53,5 +53,7 @@ _BPX_JOBNAME=${ZOWE_PREFIX}CS java -Xms32m -Xmx256m -Xquickstart \
     -Dserver.ssl.trustStore=${TRUSTSTORE} \
     -Dserver.ssl.trustStorePassword=${KEYSTORE_PASSWORD} \
     -Djava.protocol.handler.pkgs=com.ibm.crypto.provider \
+    -Dcaching.storage.mode=vsam \
+    -Dcaching.storage.vsam.name="//'JANDA06.CACHE2'" \
     -jar ${ROOT_DIR}"/caching-service.jar" &
 echo "Done"
