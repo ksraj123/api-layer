@@ -158,12 +158,9 @@ public class VsamStorage implements Storage {
             } else {
                 log.error("No record updated because no record found with key");
             }
-            // TODO exception?
-
 
         } catch (ZFileException e) {
             log.error(e.toString());
-            //TODO what to return here if it doesn't work
         } catch (UnsupportedEncodingException e) {
             log.error("Unsupported encoding: {}", ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
         } finally {
@@ -196,12 +193,9 @@ public class VsamStorage implements Storage {
             } else {
                 log.error("No record deleted because no record found with key");
             }
-            // TODO exception?
-
 
         } catch (ZFileException e) {
             log.error(e.toString());
-            //TODO what to return here if it doesn't work
         } catch (UnsupportedEncodingException e) {
             log.error("Unsupported encoding: {}", ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
         } finally {
