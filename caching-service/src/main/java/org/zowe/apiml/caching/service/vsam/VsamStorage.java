@@ -37,11 +37,29 @@ public class VsamStorage implements Storage {
         if (!isTestScope) {
             ZFile zfile = null;
             try {
+                log.info("Warming up the vsam file by writing and deleting a record");
+                byte[] recBuf = new byte[lrecl];
                 zfile = openZfile();
+                log.info("VSAM file being used: {}", zfile.getActualFilename());
+
+                byte[] record = padToLength(getCompositeKey("dele", "teme") + "warmup record, delete it", lrecl)
+                    .getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
+                log.info("Writing Record: {}", new String(record, ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE));
+                zfile.write(record);
+                boolean found = zfile.locate(getCompositeKey("dele", "teme").getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE),
+                    ZFileConstants.LOCATE_KEY_EQ);
+                log.info("Test record for deletion found: {}", found);
+                if (found) {
+                    zfile.read(recBuf); //has to be read before update/delete
+                    zfile.delrec();
+                    log.info("Test record deleted.");
+                }
             } catch (ZFileException | RcException e) {
                 log.error("Problem initializing VSAM storage, opening of {} in mode {} has failed", filename, options);
                 log.error(e.toString());
                 System.exit(RC_INVALID_VSAM_FILE);
+            } catch (UnsupportedEncodingException e) {
+                log.error("Unsupported encoding: {}", ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
             } finally {
                 if (zfile != null) {
                     closeZfile(zfile);
@@ -257,7 +275,8 @@ public class VsamStorage implements Storage {
             new Object[] {filename, options},
             new ClassOrDefaultProxyUtils.ByMethodName<>(
                 "com.ibm.jzos.ZFileException", ZFileException.class,
-                "getFileName", "getMessage", "getErrnoMsg", "getErrno", "getErrno2", "getLastOp", "getAmrcBytes"),
+                "getFileName", "getMessage", "getErrnoMsg", "getErrno", "getErrno2", "getLastOp", "getAmrcBytes",
+                "getAbendCode", "getAbendRc", "getFeedbackRc", "getFeedbackFtncd", "getFeedbackFdbk"),
             new ClassOrDefaultProxyUtils.ByMethodName<>(
                 "com.ibm.jzos.RcException", RcException.class,
                 "getMessage", "getRc"),

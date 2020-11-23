@@ -70,4 +70,9 @@ public class ZFileDummyImpl implements ZFile {
     public void write(byte[] buf, int offset, int len) throws ZFileException {
 
     }
+
+    @Override
+    public String getActualFilename() {
+        return null;
+    }
 }

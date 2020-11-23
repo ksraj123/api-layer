@@ -34,4 +34,6 @@ public interface ZFile {
 
     void write(byte[] buf, int offset, int len) throws ZFileException;
 
+    String getActualFilename();
+
 }
