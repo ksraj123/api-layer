@@ -28,8 +28,8 @@ public class VsamStorage implements Storage {
 
     String filename = "//DD:VSMDATA";
     String options = "ab+,type=record";
-    int lrecl = 80;
-    int keyLen = 8;
+    int lrecl = 300; //TODO this should be dynamic, the padding does not feel right
+    int keyLen = 128;
 
     public VsamStorage(boolean isTestScope) {
         log.info("Using VSAM storage for the cached data");
@@ -302,8 +302,8 @@ public class VsamStorage implements Storage {
 
     public String getCompositeKey(String serviceId, String key) {
 
-        int sidCapacity = 4;
-        int keyCapacity = 4;
+        int sidCapacity = (int) keyLen / 2;
+        int keyCapacity = keyLen - sidCapacity;
 
         StringBuilder b = new StringBuilder(keyLen);
 

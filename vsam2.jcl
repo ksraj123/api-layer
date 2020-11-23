@@ -18,7 +18,7 @@
       (NAME(JANDA06.CACHE2.DATA) -
       RECSZ(80 4096) -
       UNIQUE -
-      KEYS(8 0)) -
+      KEYS(128 0)) -
     INDEX -
       (NAME(JANDA06.CACHE2.INDEX) -
        UNIQUE)
