@@ -9,6 +9,8 @@
 #
 
 ./gradlew caching-service::build
-zowe-api-dev stop
+# zowe-api-dev stop
 zowe-api-dev config --name caching
-zowe-api-dev start --job
+# zowe-api-dev start --job
+zowe zos-uss issue ssh "chmod +x start.sh" --cwd "~/../../z/masserv/janda06/zoweapidev/"
+zowe zos-uss issue ssh "./start.sh" --cwd "~/../../z/masserv/janda06/zoweapidev/"

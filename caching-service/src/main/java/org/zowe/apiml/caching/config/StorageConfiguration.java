@@ -9,7 +9,7 @@
  */
 package org.zowe.apiml.caching.config;
 
-import org.springframework.beans.factory.annotation.Value;
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -19,15 +19,15 @@ import org.zowe.apiml.caching.service.inmemory.InMemoryStorage;
 import org.zowe.apiml.caching.service.vsam.VsamStorage;
 
 @Configuration
+@RequiredArgsConstructor
 public class StorageConfiguration {
 
-    @Value("${caching.storage.vsam.name://CACHE}")
-    private String vsamFileName;
+    private final VsamConfig vsamConfig;
 
     @ConditionalOnProperty(name = "caching.storage.mode", havingValue = "vsam")
     @Bean
     public Storage vsam() {
-        return new VsamStorage(vsamFileName,false);
+        return new VsamStorage(vsamConfig,false);
     }
 
     @ConditionalOnMissingBean(Storage.class)

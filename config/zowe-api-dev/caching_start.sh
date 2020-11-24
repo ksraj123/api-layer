@@ -36,7 +36,7 @@ then
   APIML_STATIC_DEF="${APIML_STATIC_DEF};${ZWEAD_EXTERNAL_STATIC_DEF_DIRECTORIES}"
 fi
 echo "active profile" $LOG_LEVEL
-echo "starting " ${DISCOVERY_CODE}
+echo "starting Caching Service"
 
 _BPX_JOBNAME=${ZOWE_PREFIX}CS java -Xms32m -Xmx256m -Xquickstart \
     -Dibm.serversocket.recover=true \

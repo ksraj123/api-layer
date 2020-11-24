@@ -10,6 +10,7 @@
 package org.zowe.apiml.caching.service.vsam;
 
 import lombok.extern.slf4j.Slf4j;
+import org.zowe.apiml.caching.config.VsamConfig;
 import org.zowe.apiml.caching.model.KeyValue;
 import org.zowe.apiml.caching.service.Storage;
 import org.zowe.apiml.util.ClassOrDefaultProxyUtils;
@@ -25,50 +26,61 @@ public class VsamStorage implements Storage {
 
     public static int RC_INVALID_VSAM_FILE = 1;
 
-    private Map<String, Map<String, KeyValue>> storage = new HashMap<>();
-
-    private String filename;
-
     String options = "ab+,type=record";
-    int lrecl = 300; //TODO this should be dynamic, the padding does not feel right
-    int keyLen = 128;
 
-    public VsamStorage(String filename, boolean isTestScope) {
-        this.filename = filename;
-        ObjectUtil.requireNotNull(filename, "Vsam filename cannot be null");
-        ObjectUtil.requireNotEmpty(filename, "Vsam filename cannot be empty");
+    VsamConfig vsamConfig;
+    VsamKey key;
+    int keyLen;
+    int lrecl;
+
+
+    public VsamStorage(VsamConfig config, boolean isTestScope) {
+
         log.info("Using VSAM storage for the cached data");
+        ObjectUtil.requireNotNull(config.getVsamFileName(), "Vsam filename cannot be null");
+        ObjectUtil.requireNotEmpty(config.getVsamFileName(), "Vsam filename cannot be empty");
+
+        log.info("Using Vsam configuration: {}", vsamConfig);
+
+        this.vsamConfig = config;
+        this.key = new VsamKey(config.getVsamKeyLength());
+        this.keyLen = vsamConfig.getVsamKeyLength();
+        this.lrecl = vsamConfig.getVsamRecordLength();
 
         if (!isTestScope) {
-            ZFile zfile = null;
-            try {
-                log.info("Warming up the vsam file by writing and deleting a record");
-                byte[] recBuf = new byte[lrecl];
-                zfile = openZfile();
-                log.info("VSAM file being used: {}", zfile.getActualFilename());
+            warmUpVsamFile(config);
+        }
+    }
 
-                byte[] record = VsamUtils.padToLength(getCompositeKey("dele", "teme") + "warmup record, delete it", lrecl)
-                    .getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
-                log.info("Writing Record: {}", new String(record, ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE));
-                zfile.write(record);
-                boolean found = zfile.locate(getCompositeKey("dele", "teme").getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE),
-                    ZFileConstants.LOCATE_KEY_EQ);
-                log.info("Test record for deletion found: {}", found);
-                if (found) {
-                    zfile.read(recBuf); //has to be read before update/delete
-                    zfile.delrec();
-                    log.info("Test record deleted.");
-                }
-            } catch (ZFileException | RcException e) {
-                log.error("Problem initializing VSAM storage, opening of {} in mode {} has failed", filename, options);
-                log.error(e.toString());
-                System.exit(RC_INVALID_VSAM_FILE);
-            } catch (UnsupportedEncodingException e) {
-                log.error("Unsupported encoding: {}", ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
-            } finally {
-                if (zfile != null) {
-                    closeZfile(zfile);
-                }
+    public void warmUpVsamFile(VsamConfig config) {
+        ZFile zfile = null;
+        try {
+            log.info("Warming up the vsam file by writing and deleting a record");
+            byte[] recBuf = new byte[lrecl];
+            zfile = openZfile();
+            log.info("VSAM file being used: {}", zfile.getActualFilename());
+
+            byte[] record = VsamUtils.padToLength(key.getKey("dele", "teme") + "warmup record, delete it", lrecl)
+                .getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
+            log.info("Writing Record: {}", new String(record, ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE));
+            zfile.write(record);
+            boolean found = zfile.locate(key.getKeyBytes("dele", "teme"),
+                ZFileConstants.LOCATE_KEY_EQ);
+            log.info("Test record for deletion found: {}", found);
+            if (found) {
+                zfile.read(recBuf); //has to be read before update/delete
+                zfile.delrec();
+                log.info("Test record deleted.");
+            }
+        } catch (ZFileException | RcException e) {
+            log.error("Problem initializing VSAM storage, opening of {} in mode {} has failed", config, options);
+            log.error(e.toString());
+            System.exit(RC_INVALID_VSAM_FILE);
+        } catch (UnsupportedEncodingException e) {
+            log.error("Unsupported encoding: {}", ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
+        } finally {
+            if (zfile != null) {
+                closeZfile(zfile);
             }
         }
     }
@@ -81,11 +93,11 @@ public class VsamStorage implements Storage {
         try {
             zfile = openZfile();
 
-            boolean found = zfile.locate(getCompositeKey(serviceId, toCreate.getKey()).getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE),
+            boolean found = zfile.locate(key.getKeyBytes(serviceId, toCreate.getKey()),
                 ZFileConstants.LOCATE_KEY_EQ);
 
             if (!found) {
-                byte[] record = VsamUtils.padToLength(getCompositeKey(serviceId, toCreate) + toCreate.getValue(), lrecl)
+                byte[] record = VsamUtils.padToLength(key.getKey(serviceId, toCreate) + toCreate.getValue(), lrecl)
                     .getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
                 log.info("Writing Record: {}", new String(record, ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE));
                 zfile.write(record);
@@ -114,7 +126,7 @@ public class VsamStorage implements Storage {
         try {
             zfile = openZfile();
             byte[] recBuf = new byte[lrecl];
-            boolean found = zfile.locate(getCompositeKey(serviceId, key).getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE),
+            boolean found = zfile.locate(this.key.getKeyBytes(serviceId, key),
                 ZFileConstants.LOCATE_KEY_EQ);
             log.info("Record found: {}", found);
             if (found) {
@@ -143,15 +155,17 @@ public class VsamStorage implements Storage {
             zfile = openZfile();
             byte[] recBuf = new byte[lrecl];
 
-            boolean found = zfile.locate(getCompositeKey(serviceId, toUpdate.getKey()).getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE),
+            boolean found = zfile.locate(key.getKeyBytes(serviceId, toUpdate.getKey()),
                 ZFileConstants.LOCATE_KEY_EQ);
 
             log.info("Record found: {}", found);
 
             if (found) {
                 zfile.read(recBuf); //has to be read before update/delete
-                byte[] record = VsamUtils.padToLength(getCompositeKey(serviceId, toUpdate) + toUpdate.getValue(), lrecl)
+                log.info("Read found record: {}", new String(recBuf, ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE));
+                byte[] record = VsamUtils.padToLength(key.getKey(serviceId, toUpdate) + toUpdate.getValue(), lrecl)
                     .getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
+                log.info("Construct updated record: {}", new String(record, ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE));
                 int nUpdated = zfile.update(record);
                 log.info("record updated: {}", toUpdate);
                 result = toUpdate;
@@ -181,7 +195,7 @@ public class VsamStorage implements Storage {
             zfile = openZfile();
             byte[] recBuf = new byte[lrecl];
 
-            boolean found = zfile.locate(getCompositeKey(serviceId, toDelete).getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE),
+            boolean found = zfile.locate(key.getKeyBytes(serviceId, toDelete),
                 ZFileConstants.LOCATE_KEY_EQ);
             log.info("Record found: {}", found);
 
@@ -216,9 +230,10 @@ public class VsamStorage implements Storage {
             byte[] recBuf = new byte[lrecl];
 
             boolean found;
-            log.info("Attempt to find key in KEY_GE mode: {}", getCompositeKey(serviceId, ""));
-            found = zfile.locate(getCompositeKey(serviceId, "").getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE),
+            log.info("Attempt to find key in KEY_GE mode: {}", key.getKeySidOnly(serviceId));
+            found = zfile.locate(key.getKeyBytesSidOnly(serviceId),
                 ZFileConstants.LOCATE_KEY_GE);
+
             log.info("Record found: {}", found);
 
             int overflowProtection = 1000;
@@ -235,16 +250,10 @@ public class VsamStorage implements Storage {
                     continue;
                 }
 
-                //TODO record key has SID in it, separate with introduction of hashed keys
+                //TODO values should be stored in JSON
                 KeyValue record = new KeyValue(value.substring(0, keyLen), value.substring(keyLen).trim());
 
-                if (record.getKey().startsWith(serviceId)) {
-                    log.info("This is a match, adding to result");
-                    result.put(record.getKey(), record);
-                } else {
-                    log.info("This is not a match, stopping the retrieval");
-                    found = false;
-                }
+                result.put(record.getKey(), record);
 
                 overflowProtection--;
                 if (overflowProtection <= 0) {
@@ -267,7 +276,7 @@ public class VsamStorage implements Storage {
         return ClassOrDefaultProxyUtils.createProxyByConstructor(ZFile.class, "com.ibm.jzos.ZFile",
             ZFileDummyImpl::new,
             new Class[] {String.class, String.class},
-            new Object[] {filename, options},
+            new Object[] {vsamConfig.getVsamFileName(), options},
             new ClassOrDefaultProxyUtils.ByMethodName<>(
                 "com.ibm.jzos.ZFileException", ZFileException.class,
                 "getFileName", "getMessage", "getErrnoMsg", "getErrno", "getErrno2", "getLastOp", "getAmrcBytes",
@@ -291,29 +300,4 @@ public class VsamStorage implements Storage {
         }
     }
 
-    public String getCompositeKey(String serviceId, KeyValue keyValue) {
-        return getCompositeKey(serviceId, keyValue.getKey());
-    }
-
-    public String getCompositeKey(String serviceId, String key) {
-
-        int sidCapacity = (int) keyLen / 2;
-        int keyCapacity = keyLen - sidCapacity;
-
-        StringBuilder b = new StringBuilder(keyLen);
-
-        if (serviceId.length() > sidCapacity) {
-            b.append(serviceId, 0, sidCapacity);
-        } else {
-            b.append(VsamUtils.padToLength(serviceId, sidCapacity));
-        }
-
-        if (key.length() > keyCapacity) {
-            b.append(key, 0, keyCapacity);
-        } else {
-            b.append(VsamUtils.padToLength(key, keyCapacity));
-        }
-
-        return b.toString();
-    }
 }

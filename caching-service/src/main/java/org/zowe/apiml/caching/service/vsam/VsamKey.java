@@ -51,6 +51,11 @@ public class VsamKey {
         return getKey(serviceId, keyValue.getKey()).getBytes(ENCODING);
     }
 
+    public String getKeySidOnly(String serviceId) {
+        return VsamUtils.padToLength(String.valueOf(serviceId.hashCode()), keyLength);
+    }
 
-
+    public byte[] getKeyBytesSidOnly(String serviceId) throws UnsupportedEncodingException {
+        return getKeySidOnly(serviceId).getBytes(ENCODING);
+    }
 }

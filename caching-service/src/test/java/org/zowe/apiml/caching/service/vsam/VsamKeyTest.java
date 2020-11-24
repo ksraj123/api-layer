@@ -41,6 +41,20 @@ class VsamKeyTest {
     }
 
     @Test
+    void canGetKeyWithJustTheSid() {
+        int keyLength = 30;
+        VsamKey underTest = new VsamKey(keyLength);
+
+        String serviceId = "gateway";
+        String key = "apiml.service.name";
+        assertThat(underTest.getKeySidOnly(serviceId).length(), is(keyLength));
+        assertThat(underTest.getKeySidOnly(serviceId), containsString(String.valueOf(serviceId.hashCode())));
+        assertThat(underTest.getKeySidOnly(serviceId), not(containsString(":")));
+        assertThat(underTest.getKeySidOnly(serviceId), not(containsString(String.valueOf(key.hashCode()))));
+
+    }
+
+    @Test
     void canGetKeyFromKeyValue() {
         KeyValue kv = new KeyValue("key", "value");
         String serviceId = "serviceId";

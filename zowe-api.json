@@ -80,7 +80,7 @@
                     "target": "run-wrapper.sh",
                     "binary": false
                 },
-                "config/zowe-api-dev/caching_start.sh": {
+                "config/zowe-api-dev/caching_start_static.sh": {
                     "target": "start.sh",
                     "binary": false
                 }
