@@ -10,31 +10,42 @@
 
 package org.zowe.apiml.caching.service.vsam;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.zowe.apiml.caching.config.VsamConfig;
 import org.zowe.apiml.caching.model.KeyValue;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class VsamKeyTest {
 
+    VsamConfig config;
+
+    @BeforeEach
+    void prepareConfig() {
+        config = mock(VsamConfig.class);
+        when(config.getKeyLength()).thenReturn(30);
+    }
+
     @Test
     void canGetInformationAboutKey() {
-        int keyLength = 30;
-        VsamKey underTest = new VsamKey(keyLength);
-        assertThat(underTest.getKeyLength(), is(30));
+
+        VsamKey underTest = new VsamKey(config);
+        assertThat(underTest.getKeyLength(), is(config.getKeyLength()));
     }
 
     @Test
     void canGetKey() {
-        int keyLength = 30;
-        VsamKey underTest = new VsamKey(keyLength);
+        VsamKey underTest = new VsamKey(config);
 
         String serviceId = "gateway";
         String key = "apiml.service.name";
-        assertThat(underTest.getKey(serviceId, key).length(), is(keyLength));
+        assertThat(underTest.getKey(serviceId, key).length(), is(config.getKeyLength()));
         assertThat(underTest.getKey(serviceId, key), containsString(String.valueOf(serviceId.hashCode())));
         assertThat(underTest.getKey(serviceId, key), containsString(":"));
         assertThat(underTest.getKey(serviceId, key), containsString(String.valueOf(key.hashCode())));
@@ -42,12 +53,11 @@ class VsamKeyTest {
 
     @Test
     void canGetKeyWithJustTheSid() {
-        int keyLength = 30;
-        VsamKey underTest = new VsamKey(keyLength);
+        VsamKey underTest = new VsamKey(config);
 
         String serviceId = "gateway";
         String key = "apiml.service.name";
-        assertThat(underTest.getKeySidOnly(serviceId).length(), is(keyLength));
+        assertThat(underTest.getKeySidOnly(serviceId).length(), is(config.getKeyLength()));
         assertThat(underTest.getKeySidOnly(serviceId), containsString(String.valueOf(serviceId.hashCode())));
         assertThat(underTest.getKeySidOnly(serviceId), not(containsString(":")));
         assertThat(underTest.getKeySidOnly(serviceId), not(containsString(String.valueOf(key.hashCode()))));
@@ -58,16 +68,17 @@ class VsamKeyTest {
     void canGetKeyFromKeyValue() {
         KeyValue kv = new KeyValue("key", "value");
         String serviceId = "serviceId";
-        int keyLength = 30;
-        VsamKey underTest = new VsamKey(keyLength);
+        VsamKey underTest = new VsamKey(config);
 
         assertThat(underTest.getKey(serviceId, kv), notNullValue());
     }
 
     @Test
     void hasMinimalLength() {
-        assertThrows(IllegalArgumentException.class, () -> new VsamKey(22));
-        assertDoesNotThrow(() -> new VsamKey(23));
+        when(config.getKeyLength()).thenReturn(22);
+        assertThrows(IllegalArgumentException.class, () -> new VsamKey(config));
+        when(config.getKeyLength()).thenReturn(23);
+        assertDoesNotThrow(() -> new VsamKey(config));
     }
 
 

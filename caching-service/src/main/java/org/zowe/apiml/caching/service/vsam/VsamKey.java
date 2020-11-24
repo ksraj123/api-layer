@@ -11,23 +11,25 @@
 package org.zowe.apiml.caching.service.vsam;
 
 import lombok.Getter;
+import org.zowe.apiml.caching.config.VsamConfig;
 import org.zowe.apiml.caching.model.KeyValue;
-import org.zowe.apiml.zfile.ZFileConstants;
 
 import java.io.UnsupportedEncodingException;
 
 public class VsamKey {
 
-    protected static final String ENCODING = ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE;
+    private final VsamConfig config;
 
     @Getter
     int keyLength;
 
-    public VsamKey(int keyLength) {
-        if (keyLength < 23) {
-            throw new IllegalArgumentException("VsamKey cannot have length smaller than 23");
+    public VsamKey(VsamConfig config) {
+
+        if (config.getKeyLength() < 23) {
+            throw new IllegalArgumentException("VsamKey cannot have length smaller than 23 characters");
         }
-        this.keyLength = keyLength;
+        this.config = config;
+        this.keyLength = config.getKeyLength();
     }
 
     @Override
@@ -44,11 +46,11 @@ public class VsamKey {
     }
 
     public byte[] getKeyBytes(String serviceId, String key) throws UnsupportedEncodingException {
-        return getKey(serviceId, key).getBytes(ENCODING);
+        return getKey(serviceId, key).getBytes(config.getEncoding());
     }
 
     public byte[] getKeyBytes(String serviceId, KeyValue keyValue) throws UnsupportedEncodingException {
-        return getKey(serviceId, keyValue.getKey()).getBytes(ENCODING);
+        return getKey(serviceId, keyValue.getKey()).getBytes(config.getEncoding());
     }
 
     public String getKeySidOnly(String serviceId) {
@@ -56,6 +58,6 @@ public class VsamKey {
     }
 
     public byte[] getKeyBytesSidOnly(String serviceId) throws UnsupportedEncodingException {
-        return getKeySidOnly(serviceId).getBytes(ENCODING);
+        return getKeySidOnly(serviceId).getBytes(config.getEncoding());
     }
 }

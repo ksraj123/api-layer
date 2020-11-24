@@ -11,18 +11,22 @@
 package org.zowe.apiml.caching.config;
 
 import lombok.Getter;
+import lombok.ToString;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.zowe.apiml.zfile.ZFileConstants;
 
 @Configuration
 @Getter
+@ToString
 public class VsamConfig {
 
     @Value("${caching.storage.vsam.name://CACHE}")
-    private String vsamFileName;
+    private String fileName;
     @Value("${caching.storage.vsam.keyLength:32}")
-    private int vsamKeyLength;
+    private int keyLength;
     @Value("${caching.storage.vsam.recordLength:512}")
-    private int vsamRecordLength;
-
+    private int recordLength;
+    @Value("${caching.storage.vsam.encoding:" + ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE + "}")
+    private String encoding;
 }

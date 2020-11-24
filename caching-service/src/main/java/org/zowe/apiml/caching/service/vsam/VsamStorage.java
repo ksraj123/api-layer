@@ -37,22 +37,23 @@ public class VsamStorage implements Storage {
     public VsamStorage(VsamConfig config, boolean isTestScope) {
 
         log.info("Using VSAM storage for the cached data");
-        ObjectUtil.requireNotNull(config.getVsamFileName(), "Vsam filename cannot be null");
-        ObjectUtil.requireNotEmpty(config.getVsamFileName(), "Vsam filename cannot be empty");
+        ObjectUtil.requireNotNull(config.getFileName(), "Vsam filename cannot be null");
+        ObjectUtil.requireNotEmpty(config.getFileName(), "Vsam filename cannot be empty");
+
+
+        this.vsamConfig = config;
+        this.key = new VsamKey(config);
+        this.keyLen = vsamConfig.getKeyLength();
+        this.lrecl = vsamConfig.getRecordLength();
 
         log.info("Using Vsam configuration: {}", vsamConfig);
 
-        this.vsamConfig = config;
-        this.key = new VsamKey(config.getVsamKeyLength());
-        this.keyLen = vsamConfig.getVsamKeyLength();
-        this.lrecl = vsamConfig.getVsamRecordLength();
-
         if (!isTestScope) {
-            warmUpVsamFile(config);
+            warmUpVsamFile();
         }
     }
 
-    public void warmUpVsamFile(VsamConfig config) {
+    public void warmUpVsamFile() {
         ZFile zfile = null;
         try {
             log.info("Warming up the vsam file by writing and deleting a record");
@@ -60,12 +61,13 @@ public class VsamStorage implements Storage {
             zfile = openZfile();
             log.info("VSAM file being used: {}", zfile.getActualFilename());
 
-            byte[] record = VsamUtils.padToLength(key.getKey("dele", "teme") + "warmup record, delete it", lrecl)
-                .getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
-            log.info("Writing Record: {}", new String(record, ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE));
-            zfile.write(record);
-            boolean found = zfile.locate(key.getKeyBytes("dele", "teme"),
-                ZFileConstants.LOCATE_KEY_EQ);
+            VsamRecord record = new VsamRecord(vsamConfig, "delete", new KeyValue("me", "novalue"));
+
+            log.info("Writing Record: {}", record);
+            zfile.write(record.getBytes());
+
+            boolean found = zfile.locate(record.getKeyBytes(), ZFileConstants.LOCATE_KEY_EQ);
+
             log.info("Test record for deletion found: {}", found);
             if (found) {
                 zfile.read(recBuf); //has to be read before update/delete
@@ -73,7 +75,7 @@ public class VsamStorage implements Storage {
                 log.info("Test record deleted.");
             }
         } catch (ZFileException | RcException e) {
-            log.error("Problem initializing VSAM storage, opening of {} in mode {} has failed", config, options);
+            log.error("Problem initializing VSAM storage, opening of {} in mode {} has failed", vsamConfig, options);
             log.error(e.toString());
             System.exit(RC_INVALID_VSAM_FILE);
         } catch (UnsupportedEncodingException e) {
@@ -93,14 +95,14 @@ public class VsamStorage implements Storage {
         try {
             zfile = openZfile();
 
-            boolean found = zfile.locate(key.getKeyBytes(serviceId, toCreate.getKey()),
+            VsamRecord record = new VsamRecord(vsamConfig, serviceId, toCreate);
+
+            boolean found = zfile.locate(record.getKeyBytes(),
                 ZFileConstants.LOCATE_KEY_EQ);
 
             if (!found) {
-                byte[] record = VsamUtils.padToLength(key.getKey(serviceId, toCreate) + toCreate.getValue(), lrecl)
-                    .getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
-                log.info("Writing Record: {}", new String(record, ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE));
-                zfile.write(record);
+                log.info("Writing Record: {}", record);
+                zfile.write(record.getBytes());
                 result = toCreate;
             } else {
                 log.error("The record already exists and will not be created. Use update instead.");
@@ -276,7 +278,7 @@ public class VsamStorage implements Storage {
         return ClassOrDefaultProxyUtils.createProxyByConstructor(ZFile.class, "com.ibm.jzos.ZFile",
             ZFileDummyImpl::new,
             new Class[] {String.class, String.class},
-            new Object[] {vsamConfig.getVsamFileName(), options},
+            new Object[] {vsamConfig.getFileName(), options},
             new ClassOrDefaultProxyUtils.ByMethodName<>(
                 "com.ibm.jzos.ZFileException", ZFileException.class,
                 "getFileName", "getMessage", "getErrnoMsg", "getErrno", "getErrno2", "getLastOp", "getAmrcBytes",
