@@ -158,7 +158,6 @@ public class VsamStorage implements Storage {
         ZFile zfile = null;
         try {
             zfile = openZfile();
-            byte[] recBuf = new byte[lrecl];
 
             boolean found = zfile.locate(key.getKeyBytes(serviceId, toUpdate.getKey()),
                 ZFileConstants.LOCATE_KEY_EQ);
@@ -166,14 +165,14 @@ public class VsamStorage implements Storage {
             log.info("Record found: {}", found);
 
             if (found) {
+                byte[] recBuf = new byte[lrecl];
                 zfile.read(recBuf); //has to be read before update/delete
                 log.info("Read found record: {}", new String(recBuf, ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE));
-                byte[] record = VsamUtils.padToLength(key.getKey(serviceId, toUpdate) + toUpdate.getValue(), lrecl)
-                    .getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
-                log.info("Construct updated record: {}", new String(record, ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE));
-                int nUpdated = zfile.update(record);
-                log.info("record updated: {}", toUpdate);
-                result = toUpdate;
+                VsamRecord record = new VsamRecord(vsamConfig, serviceId, toUpdate);
+                log.info("Construct updated record: {}", record);
+                int nUpdated = zfile.update(record.getBytes());
+                log.info("ZFile.update return value: {}", nUpdated);
+                result = record.getKeyValue();
             } else {
                 log.error("No record updated because no record found with key");
             }
@@ -182,6 +181,8 @@ public class VsamStorage implements Storage {
             log.error(e.toString());
         } catch (UnsupportedEncodingException e) {
             log.error("Unsupported encoding: {}", ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
+        } catch (VsamRecordException e) {
+            log.error("VsamRecordException occured: {}", e);
         } finally {
             closeZfile(zfile);
         }
@@ -198,17 +199,18 @@ public class VsamStorage implements Storage {
 
         try {
             zfile = openZfile();
-            byte[] recBuf = new byte[lrecl];
 
             boolean found = zfile.locate(key.getKeyBytes(serviceId, toDelete),
                 ZFileConstants.LOCATE_KEY_EQ);
             log.info("Record found: {}", found);
 
             if (found) {
+                byte[] recBuf = new byte[lrecl];
                 zfile.read(recBuf); //has to be read before update/delete
+                VsamRecord record = new VsamRecord(vsamConfig, serviceId, recBuf);
                 zfile.delrec();
-                log.info("record deleted: {}", toDelete);
-                result = new KeyValue(toDelete, "DELETED");
+                log.info("Deleted vsam record: {}", record);
+                result = record.getKeyValue();
             } else {
                 log.error("No record deleted because no record found with key");
             }
@@ -217,6 +219,8 @@ public class VsamStorage implements Storage {
             log.error(e.toString());
         } catch (UnsupportedEncodingException e) {
             log.error("Unsupported encoding: {}", ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
+        } catch (VsamRecordException e) {
+            log.error("VsamRecordException occured: {}", e);
         } finally {
             closeZfile(zfile);
         }
@@ -241,13 +245,13 @@ public class VsamStorage implements Storage {
 
             log.info("Record found: {}", found);
 
-            int overflowProtection = 1000;
+            int overflowProtection = 10000;
             while (found) {
                 int nread = zfile.read(recBuf);
                 log.info("RecBuf: {}", recBuf);
                 log.info("nread: {}", nread);
-                String value = new String(recBuf, ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
-                log.info("ConvertedStringValue: {}", value);
+
+                log.info("ConvertedStringValue: {}", new String(recBuf, ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE));
 
                 if (nread < 0) {
                     log.info("nread is < 0, stopping the retrieval");
@@ -255,10 +259,10 @@ public class VsamStorage implements Storage {
                     continue;
                 }
 
-                //TODO values should be stored in JSON
-                KeyValue record = new KeyValue(value.substring(0, keyLen), value.substring(keyLen).trim());
+                VsamRecord record = new VsamRecord(vsamConfig, serviceId, recBuf);
+                log.info("Read record: {}", record);
 
-                result.put(record.getKey(), record);
+                result.put(record.getKeyValue().getKey(), record.getKeyValue());
 
                 overflowProtection--;
                 if (overflowProtection <= 0) {
@@ -270,6 +274,8 @@ public class VsamStorage implements Storage {
             log.error(e.toString());
         } catch (UnsupportedEncodingException e) {
             log.error("Unsupported encoding: {}", ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
+        } catch (VsamRecordException e) {
+            log.error("VsamRecordException occured: {}", e);
         } finally {
             closeZfile(zfile);
         }

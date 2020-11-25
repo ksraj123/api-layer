@@ -20,6 +20,7 @@ import java.io.UnsupportedEncodingException;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -105,6 +106,17 @@ class VsamRecordTest {
 
         assertThrows(VsamRecordException.class, () -> underTest2.getBytes());
 
+    }
+
+    @Test
+    void toStringCanBeCalledAfterRecordIsCreated() throws VsamRecordException, UnsupportedEncodingException {
+        byte[] recordData = "-646160747:106079             {\"key\":\"daisy\",\"value\":\"flower\"}                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             "
+            .getBytes(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
+        VsamRecord underTestFromBytes = new VsamRecord(config, "Service", recordData);
+        assertDoesNotThrow(() -> underTestFromBytes.toString());
+
+        VsamRecord underTestFromValues = new VsamRecord(config, "Service", new KeyValue("k","v"));
+        assertDoesNotThrow(() -> underTestFromValues.toString());
     }
 
 }

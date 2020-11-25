@@ -38,6 +38,7 @@ public class VsamRecord {
     public VsamRecord(VsamConfig config, String serviceId, byte[] recordData) throws VsamRecordException {
         this.config = config;
         this.serviceId = serviceId;
+        this.key = new VsamKey(config);
 
         try {
             String recordString = new String(recordData, config.getEncoding());
