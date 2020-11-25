@@ -57,7 +57,6 @@ public class VsamStorage implements Storage {
         ZFile zfile = null;
         try {
             log.info("Warming up the vsam file by writing and deleting a record");
-            byte[] recBuf = new byte[lrecl];
             zfile = openZfile();
             log.info("VSAM file being used: {}", zfile.getActualFilename());
 
@@ -70,6 +69,7 @@ public class VsamStorage implements Storage {
 
             log.info("Test record for deletion found: {}", found);
             if (found) {
+                byte[] recBuf = new byte[lrecl];
                 zfile.read(recBuf); //has to be read before update/delete
                 zfile.delrec();
                 log.info("Test record deleted.");
@@ -78,8 +78,8 @@ public class VsamStorage implements Storage {
             log.error("Problem initializing VSAM storage, opening of {} in mode {} has failed", vsamConfig, options);
             log.error(e.toString());
             System.exit(RC_INVALID_VSAM_FILE);
-        } catch (UnsupportedEncodingException e) {
-            log.error("Unsupported encoding: {}", ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
+        } catch (VsamRecordException e) {
+            log.error("VsamRecordException occured: {}", e);
         } finally {
             if (zfile != null) {
                 closeZfile(zfile);
@@ -111,8 +111,8 @@ public class VsamStorage implements Storage {
 
         } catch (ZFileException e) {
             log.error(e.toString());
-        } catch (UnsupportedEncodingException e) {
-            log.error("Unsupported encoding: {}", ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
+        } catch (VsamRecordException e) {
+            log.error("VsamRecordException occured: {}", e);
         } finally {
             closeZfile(zfile);
         }
@@ -127,21 +127,24 @@ public class VsamStorage implements Storage {
         ZFile zfile = null;
         try {
             zfile = openZfile();
-            byte[] recBuf = new byte[lrecl];
             boolean found = zfile.locate(this.key.getKeyBytes(serviceId, key),
                 ZFileConstants.LOCATE_KEY_EQ);
             log.info("Record found: {}", found);
             if (found) {
+                byte[] recBuf = new byte[lrecl];
                 zfile.read(recBuf);
                 log.info("RecBuf: {}", recBuf);
-                String value = new String(recBuf, ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
-                log.info("ConvertedStringValue: {}", value);
-                result = new KeyValue(key, value.substring(keyLen).trim());
+                log.info("ConvertedStringValue: {}", new String(recBuf, vsamConfig.getEncoding()));
+                VsamRecord record = new VsamRecord(vsamConfig, serviceId, recBuf);
+                log.info("VsamRecord read: {}", record);
+                result = record.getKeyValue();
             }
         } catch (ZFileException e) {
             log.error(e.toString());
         } catch (UnsupportedEncodingException e) {
             log.error("Unsupported encoding: {}", ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
+        } catch (VsamRecordException e) {
+            log.error("VsamRecordException occured: {}", e);
         } finally {
             closeZfile(zfile);
         }
