@@ -3,7 +3,7 @@ spring:
         name: Caching service
 
 apiml:
-    enabled: true
+    enabled: false
     service:
         preferIpAddress: false
 
