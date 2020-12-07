@@ -90,7 +90,11 @@ public final class ClassOrDefaultProxyUtils {
             final Class<?> implementationClazz = Class.forName(implementationClassName);
             final Object implementation = implementationClazz.getDeclaredConstructor(constructorSignature).newInstance(constructorParams);
             return makeProxy(interfaceClass, implementation, true, exceptionMappings);
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | NoSuchMethodException e) {
+            log.warn("Implementation {} is not available with constructor signature {}, it will continue with default one {} : " + e.getLocalizedMessage(),
+                implementationClassName, constructorSignature,  defaultImplementation);
+        } catch (InvocationTargetException e) {
+            log.error("The invoked constructor has thrown exception: ", e.getCause());
             log.warn("Implementation {} is not available with constructor signature {}, it will continue with default one {} : " + e.getLocalizedMessage(),
                 implementationClassName, constructorSignature,  defaultImplementation);
         }

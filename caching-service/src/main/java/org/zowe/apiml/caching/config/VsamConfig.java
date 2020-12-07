@@ -10,7 +10,7 @@
 
 package org.zowe.apiml.caching.config;
 
-import lombok.Getter;
+import lombok.Data;
 import lombok.ToString;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
@@ -23,7 +23,7 @@ import org.zowe.apiml.zfile.ZFileConstants;
  * Following props can be overriden from command line.
  */
 @Configuration
-@Getter
+@Data
 @ToString
 public class VsamConfig {
 
@@ -35,4 +35,5 @@ public class VsamConfig {
     private int recordLength;
     @Value("${caching.storage.vsam.encoding:" + ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE + "}")
     private String encoding;
+    private String options;
 }

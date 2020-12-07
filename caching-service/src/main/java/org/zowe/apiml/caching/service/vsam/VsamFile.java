@@ -30,13 +30,13 @@ public class VsamFile implements Closeable, ZFile {
 
     private ZFile zfile;
     private VsamConfig vsamConfig;
-    private String options = "ab+,type=record";
 
     public VsamFile(VsamConfig config) {
         if (config == null) {
             throw new IllegalArgumentException("Cannot create VsamFile with null configuration");
         }
         this.vsamConfig = config;
+        log.info("VsamFile::new with parameters: {}", this.vsamConfig);
         try {
             this.zfile = openZfile();
         } catch (ZFileException e) {
@@ -93,8 +93,8 @@ public class VsamFile implements Closeable, ZFile {
     private ZFile openZfile() throws ZFileException {
         return ClassOrDefaultProxyUtils.createProxyByConstructor(ZFile.class, "com.ibm.jzos.ZFile",
             ZFileDummyImpl::new,
-            new Class[] {String.class, String.class},
-            new Object[] {vsamConfig.getFileName(), options},
+            new Class[] {String.class, String.class, int.class},
+            new Object[] {vsamConfig.getFileName(), vsamConfig.getOptions(), ZFileConstants.FLAG_DISP_SHR + ZFileConstants.FLAG_PDS_ENQ},
             new ClassOrDefaultProxyUtils.ByMethodName<>(
                 "com.ibm.jzos.ZFileException", ZFileException.class,
                 "getFileName", "getMessage", "getErrnoMsg", "getErrno", "getErrno2", "getLastOp", "getAmrcBytes",

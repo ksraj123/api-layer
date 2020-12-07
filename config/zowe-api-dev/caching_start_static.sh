@@ -12,7 +12,7 @@ java -Xquickstart \
 -Dcaching.storage.mode=novsam \
 -Dcaching.storage.vsam.name="//'JANDA06.CACHE3'" \
 -Dapiml.service.hostname=usilca32.lvn.broadcom.net \
--Dapiml.service.port=7998 \
+-Dapiml.service.port=57832 \
 -Dapiml.service.serviceIpAddress=0.0.0.0 \
 -Dserver.ssl.keyAlias=localhost \
 -Dserver.ssl.keyPassword=password \
