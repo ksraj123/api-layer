@@ -14,10 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletResponse;
@@ -37,7 +34,7 @@ public class AuthenticationController {
 
     @RequestMapping(value = "/zosmf/services/authenticate", produces = "application/json; charset=utf-8", method = RequestMethod.DELETE)
     public ResponseEntity<?> logout() {
-        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     @RequestMapping(value = "/zosmf/services/authenticate", produces = "application/json; charset=utf-8", method = RequestMethod.POST)
@@ -45,7 +42,8 @@ public class AuthenticationController {
         HttpServletResponse response,
         @RequestHeader Map<String, String> headers
     ) {
-        String authorization = headers.get("authorization");
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        /*String authorization = headers.get("authorization");
 
         if (authorization == null) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
@@ -70,12 +68,12 @@ public class AuthenticationController {
             return validJwtResponse(response, piecesOfCredentials[0]);
         } else {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        }
+        }*/
     }
 
     @RequestMapping(value = "/jwt/ibm/api/zOSMFBuilder/**", produces = "application/json; charset=utf-8", method = RequestMethod.GET)
     public ResponseEntity<?> jwk() {
-        return new ResponseEntity<>(HttpStatus.OK);
+        return new ResponseEntity<>(HttpStatus.NOT_FOUND);
     }
 
     private ResponseEntity<?> validJwtResponse(

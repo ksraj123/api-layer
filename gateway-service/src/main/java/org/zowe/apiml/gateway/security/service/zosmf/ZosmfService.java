@@ -14,17 +14,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.netflix.discovery.DiscoveryClient;
 import com.nimbusds.jose.jwk.JWKSet;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Primary;
 import org.springframework.http.*;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
@@ -34,9 +30,7 @@ import org.zowe.apiml.security.common.token.TokenNotValidException;
 import springfox.documentation.annotations.Cacheable;
 
 import java.text.ParseException;
-import java.util.EnumMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Primary
 @Service
@@ -115,7 +109,7 @@ public class ZosmfService extends AbstractZosmfService {
                 authentication,
                 zosmfInfoURIEndpoint,
                 HttpMethod.GET);
-            authenticationResponse.setDomain(getZosmfRealm(zosmfInfoURIEndpoint));
+            authenticationResponse.setDomain("SAFF Realm");
         }
         return authenticationResponse;
     }
@@ -130,18 +124,28 @@ public class ZosmfService extends AbstractZosmfService {
         headers.add(ZOSMF_CSRF_HEADER, "");
 
         try {
-            final ResponseEntity<ZosmfInfo> info = restTemplateWithoutKeystore.exchange(
+//            final ResponseEntity<ZosmfInfo> info = restTemplateWithoutKeystore.exchange(
+//                infoURIEndpoint,
+//                HttpMethod.GET,
+//                new HttpEntity<>(headers),
+//                ZosmfInfo.class
+//            );
+
+            final ResponseEntity<String> info = restTemplateWithoutKeystore.exchange(
                 infoURIEndpoint,
                 HttpMethod.GET,
                 new HttpEntity<>(headers),
-                ZosmfInfo.class
+                String.class
             );
 
-            ZosmfInfo zosmfInfo = info.getBody();
+            ZosmfInfo zosmfInfo = securityObjectMapper.convertValue(info, ZosmfInfo.class);
+
+            //ZosmfInfo zosmfInfo = info.getBody();
 
             if (zosmfInfo == null || StringUtils.isEmpty(zosmfInfo.getSafRealm())) {
-                apimlLog.log("apiml.security.zosmfDomainIsEmpty", ZOSMF_DOMAIN);
-                throw new AuthenticationServiceException("z/OSMF domain cannot be read.");
+                //apimlLog.log("apiml.security.zosmfDomainIsEmpty", ZOSMF_DOMAIN);
+                //throw new AuthenticationServiceException("z/OSMF domain cannot be read.");
+                zosmfInfo.setSafRealm("APIML Realm");
             }
 
             return zosmfInfo.getSafRealm();
