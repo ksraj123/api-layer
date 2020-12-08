@@ -15,10 +15,11 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 import org.zowe.apiml.caching.config.VsamConfig;
+import org.zowe.apiml.caching.model.KeyValue;
 import org.zowe.apiml.zfile.ZFileConstants;
 import org.zowe.apiml.zfile.ZFileException;
 
-import java.io.UnsupportedEncodingException;
+import java.util.List;
 
 @Component
 //@RequiredArgsConstructor
@@ -59,10 +60,11 @@ public class VsamTestClass {
         Runnable read = () -> {
             log.info("Executing VSAM thread");
             try (VsamFile file = new VsamFile(config1)) {
-                //file.warmUpVsamFile();
-                readRecord(file, config1);
+                VsamRecord record = new VsamRecord(config1, "service1", new KeyValue("key1", ""));
+                file.read(record);
+
                 Thread.sleep(10000);
-            } catch (InterruptedException | ZFileException | VsamRecordException | UnsupportedEncodingException e) {
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
             log.info("handle released");
@@ -79,29 +81,54 @@ public class VsamTestClass {
             log.info("handle released");
         };
 
-        new Thread(write).start();
+        Runnable fullShebang = () -> {
+            log.info("Executing VSAM thread");
+            try (VsamFile file = new VsamFile(config2)) {
+                file.warmUpVsamFile();
 
-        /*new Thread(write).start();
+                VsamRecord record1 = new VsamRecord(config1, "service1", new KeyValue("key1", "value1"));
+                VsamRecord record1u = new VsamRecord(config1, "service1", new KeyValue("key1", "value2"));
+                VsamRecord record2 = new VsamRecord(config1, "service1", new KeyValue("key2", "value1"));
+                VsamRecord record3 = new VsamRecord(config1, "service1", new KeyValue("key3", "value1"));
+                VsamRecord record4 = new VsamRecord(config1, "service1", new KeyValue("key4", "value1"));
 
-        new Thread(read).start();
+                VsamRecord record5 = new VsamRecord(config1, "service2", new KeyValue("key1", "value1"));
+                VsamRecord record6 = new VsamRecord(config1, "service2", new KeyValue("key2", "value1"));
 
-        new Thread(write).start();*/
+
+                file.create(record1);
+                file.create(record2);
+                file.create(record3);
+                file.create(record4);
+                file.create(record5);
+                file.create(record6);
+
+
+                file.read(record1);
+
+
+                file.update(record1u);
+
+                file.delete(record1u);
+
+                List<VsamRecord> service1 = file.readForService("service1");
+
+                log.info("Read records: {}", service1);
+
+            } catch (ZFileException | VsamRecordException e) {
+                e.printStackTrace();
+            }
+            log.info("handle released");
+        };
+
+
+        new Thread(fullShebang).start();
+
+
 
     }
 
-    public void readRecord(VsamFile zfile, VsamConfig config) throws VsamRecordException, UnsupportedEncodingException, ZFileException {
-        boolean found = zfile.locate(this.key.getKeyBytes("apimtst", "dodo"),
-            ZFileConstants.LOCATE_KEY_EQ);
-        log.info("RECORD_FOUND_MESSAGE", found);
-        if (found) {
-            byte[] recBuf = new byte[config.getRecordLength()];
-            zfile.read(recBuf);
-            log.info("RecBuf: {}", recBuf);
-            log.info("ConvertedStringValue: {}", new String(recBuf, config.getEncoding()));
-            VsamRecord record = new VsamRecord(config, "apimtst", recBuf);
-            log.info("VsamRecord read: {}", record);
-        }
-    }
+
 
 
 }
