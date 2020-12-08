@@ -29,6 +29,7 @@ public class VsamTestClass {
     private final VsamKey key;
 
     private final static String DATASET = "//'JANDA06.CACHE5'";
+    private VsamStorage storage;
 
     public VsamTestClass(VsamConfig config) {
         this.config = config;
@@ -53,6 +54,7 @@ public class VsamTestClass {
         config2.setKeyLength(32);
         config2.setRecordLength(512);
 
+        storage = new VsamStorage(config1);
 
         Runnable read = () -> {
             log.info("Executing READ VSAM thread");
@@ -120,8 +122,16 @@ public class VsamTestClass {
 
         };
 
+        Runnable storageDelete = () -> {
+            log.info("Executing Storage Delete thread");
+            storage.delete("service2", "key1");
+        };
+
 
         new Thread(fullShebang).start();
+        new Thread(storageDelete).start();
+        new Thread(storageDelete).start();
+        new Thread(storageDelete).start();
         new Thread(read).start();
         new Thread(read).start();
         new Thread(read).start();
