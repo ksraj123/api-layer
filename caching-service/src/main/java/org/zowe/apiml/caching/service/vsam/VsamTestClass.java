@@ -22,7 +22,6 @@ import org.zowe.apiml.zfile.ZFileException;
 import java.util.List;
 
 @Component
-//@RequiredArgsConstructor
 @Slf4j
 public class VsamTestClass {
 
@@ -47,43 +46,39 @@ public class VsamTestClass {
         config1.setEncoding(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
         config1.setKeyLength(32);
         config1.setRecordLength(512);
-        config1.setOptions("rb,type=record");
 
         VsamConfig config2 = new VsamConfig();
         config2.setFileName(DATASET);
         config2.setEncoding(ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE);
         config2.setKeyLength(32);
         config2.setRecordLength(512);
-        config2.setOptions("ab+,type=record");
 
 
         Runnable read = () -> {
-            log.info("Executing VSAM thread");
-            try (VsamFile file = new VsamFile(config1)) {
+            log.info("Executing READ VSAM thread");
+            try (VsamFile file = new VsamFile(config1, VsamConfig.VsamOptions.READ)) {
                 VsamRecord record = new VsamRecord(config1, "service1", new KeyValue("key1", ""));
                 file.read(record);
 
-                Thread.sleep(10000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+                //Thread.sleep(10000);
             }
             log.info("handle released");
         };
 
         Runnable write = () -> {
-            log.info("Executing VSAM thread");
-            try (VsamFile file = new VsamFile(config2)) {
+            log.info("Executing WRITE VSAM thread");
+            try (VsamFile file = new VsamFile(config2, VsamConfig.VsamOptions.WRITE)) {
                 file.warmUpVsamFile();
-                Thread.sleep(15000);
-            } catch (ZFileException | VsamRecordException | InterruptedException e) {
+                //Thread.sleep(15000);
+            } catch (ZFileException | VsamRecordException e) {
                 e.printStackTrace();
             }
             log.info("handle released");
         };
 
         Runnable fullShebang = () -> {
-            log.info("Executing VSAM thread");
-            try (VsamFile file = new VsamFile(config2)) {
+            log.info("Executing FULL SHEBANG VSAM thread");
+            try (VsamFile file = new VsamFile(config2, VsamConfig.VsamOptions.WRITE)) {
                 file.warmUpVsamFile();
 
                 VsamRecord record1 = new VsamRecord(config1, "service1", new KeyValue("key1", "value1"));
@@ -115,14 +110,22 @@ public class VsamTestClass {
 
                 log.info("Read records: {}", service1);
 
-            } catch (ZFileException | VsamRecordException e) {
+                Thread.sleep(15000);
+                log.info("handle released");
+
+            } catch (ZFileException | VsamRecordException | InterruptedException e) {
                 e.printStackTrace();
             }
-            log.info("handle released");
+
+
         };
 
 
         new Thread(fullShebang).start();
+        new Thread(read).start();
+        new Thread(read).start();
+        new Thread(read).start();
+        new Thread(read).start();
 
 
 

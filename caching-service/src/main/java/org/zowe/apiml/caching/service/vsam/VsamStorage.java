@@ -37,7 +37,7 @@ public class VsamStorage implements Storage {
 
         log.info("Using Vsam configuration: {}", vsamConfig);
 
-        try (VsamFile file = new VsamFile(config, true)) {
+        try (VsamFile file = new VsamFile(config, VsamConfig.VsamOptions.WRITE, true)) {
             log.info("Vsam file open successful");
         }
 
@@ -48,7 +48,7 @@ public class VsamStorage implements Storage {
         log.info("Writing record: {}|{}|{}", serviceId, toCreate.getKey(), toCreate.getValue());
         KeyValue result = null;
 
-        try (VsamFile file = new VsamFile(vsamConfig)) {
+        try (VsamFile file = new VsamFile(vsamConfig, VsamConfig.VsamOptions.WRITE)) {
 
             VsamRecord record = new VsamRecord(vsamConfig, serviceId, toCreate);
 
@@ -64,7 +64,7 @@ public class VsamStorage implements Storage {
         log.info("Reading Record: {}|{}|{}", serviceId, key, "-");
         VsamRecord result = null;
 
-        try (VsamFile file = new VsamFile(vsamConfig)) {
+        try (VsamFile file = new VsamFile(vsamConfig, VsamConfig.VsamOptions.READ)) {
 
             VsamRecord record = new VsamRecord(vsamConfig, serviceId, new KeyValue(key, ""));
 
@@ -79,7 +79,7 @@ public class VsamStorage implements Storage {
         log.info("Updating Record: {}|{}|{}", serviceId, toUpdate.getKey(), toUpdate.getValue());
         VsamRecord result = null;
 
-        try (VsamFile file = new VsamFile(vsamConfig)) {
+        try (VsamFile file = new VsamFile(vsamConfig, VsamConfig.VsamOptions.WRITE)) {
 
             VsamRecord record = new VsamRecord(vsamConfig, serviceId, toUpdate);
 
@@ -96,7 +96,7 @@ public class VsamStorage implements Storage {
         log.info("Deleting Record: {}|{}|{}", serviceId, toDelete, "-");
         VsamRecord result = null;
 
-        try (VsamFile file = new VsamFile(vsamConfig)) {
+        try (VsamFile file = new VsamFile(vsamConfig, VsamConfig.VsamOptions.WRITE)) {
 
             VsamRecord record = new VsamRecord(vsamConfig, serviceId, new KeyValue(toDelete, ""));
 
@@ -113,7 +113,7 @@ public class VsamStorage implements Storage {
         Map<String, KeyValue> result = new HashMap<>();
         List<VsamRecord> returned = new ArrayList<>();
 
-        try (VsamFile file = new VsamFile(vsamConfig)) {
+        try (VsamFile file = new VsamFile(vsamConfig, VsamConfig.VsamOptions.READ)) {
             returned = file.readForService(serviceId);
         }
 

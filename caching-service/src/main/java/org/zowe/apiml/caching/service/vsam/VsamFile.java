@@ -34,32 +34,37 @@ public class VsamFile implements Closeable {
 
     private ZFile zfile;
     private VsamConfig vsamConfig;
+    private final VsamConfig.VsamOptions options;
 
     public static final String VSAM_RECORD_ERROR_MESSAGE = "VsamRecordException occured: {}";
     public static final String RECORD_FOUND_MESSAGE = "Record found: {}";
     public static final String UNSUPPORTED_ENCODING_MESSAGE = "Unsupported encoding: {}";
 
-    public VsamFile(VsamConfig config) {
-        this(config, false);
+    public VsamFile(VsamConfig config, VsamConfig.VsamOptions options) {
+        this(config, options, false);
     }
 
-    public VsamFile(VsamConfig config, boolean performWarmup) {
+    public VsamFile(VsamConfig config, VsamConfig.VsamOptions options, boolean performWarmup) {
         if (config == null) {
             throw new IllegalArgumentException("Cannot create VsamFile with null configuration");
         }
 
         this.vsamConfig = config;
-        log.info("VsamFile::new with parameters: {}", this.vsamConfig);
+        this.options = options;
+        log.info("VsamFile::new with parameters: {}, Vsam options: {}", this.vsamConfig, this.options);
+
         try {
             this.zfile = openZfile();
 
             if (performWarmup) {
                 log.info("Warming up VSAM file");
                 warmUpVsamFile();
+            } else {
+
             }
 
         } catch (ZFileException | VsamRecordException e) {
-            log.error("Problem initializing VSAM storage, opening of {} in mode {} has failed. Exception thrown: {}", vsamConfig, config.getOptions(), e);
+            log.error("Problem initializing VSAM storage, opening of {} in mode {} has failed. Exception thrown: {}", vsamConfig, this.options, e);
             throw new IllegalStateException("Failed to open VsamFile");
         }
     }
@@ -288,7 +293,7 @@ public class VsamFile implements Closeable {
         return ClassOrDefaultProxyUtils.createProxyByConstructor(ZFile.class, "com.ibm.jzos.ZFile",
             ZFileDummyImpl::new,
             new Class[]{String.class, String.class, int.class},
-            new Object[]{vsamConfig.getFileName(), vsamConfig.getOptions(), ZFileConstants.FLAG_DISP_SHR + ZFileConstants.FLAG_PDS_ENQ},
+            new Object[]{vsamConfig.getFileName(), options.getOptionsString(), ZFileConstants.FLAG_DISP_SHR + ZFileConstants.FLAG_PDS_ENQ},
             new ClassOrDefaultProxyUtils.ByMethodName<>(
                 "com.ibm.jzos.ZFileException", ZFileException.class,
                 "getFileName", "getMessage", "getErrnoMsg", "getErrno", "getErrno2", "getLastOp", "getAmrcBytes",

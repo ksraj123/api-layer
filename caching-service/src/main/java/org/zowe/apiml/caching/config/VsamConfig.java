@@ -10,8 +10,7 @@
 
 package org.zowe.apiml.caching.config;
 
-import lombok.Data;
-import lombok.ToString;
+import lombok.*;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.zowe.apiml.zfile.ZFileConstants;
@@ -35,5 +34,16 @@ public class VsamConfig {
     private int recordLength;
     @Value("${caching.storage.vsam.encoding:" + ZFileConstants.DEFAULT_EBCDIC_CODE_PAGE + "}")
     private String encoding;
-    private String options;
+
+    public static enum VsamOptions {
+        READ("rb,type=record"),
+        WRITE("ab+,type=record");
+
+        @Getter
+        private final String optionsString;
+
+        VsamOptions(String optionsString) {
+            this.optionsString = optionsString;
+        }
+    }
 }
