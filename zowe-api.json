@@ -30,7 +30,7 @@
     },
 
     "shellStartCommand": "echo 'Not supported until variable replacement is implemented by Zowe SDK team'",
-    "jobTemplatePath": "config/zowe-api-dev/template-bpxbatch.jcl",
+    "jobTemplatePath": "config/zowe-api-dev/template-caching-jzos.jcl",
     "jobPath": "build/api.jcl",
 
     "configurations": {
@@ -59,6 +59,30 @@
                 "apiml-common/src/test/resources/zowe.version/zowe-manifest.json": {
                     "target": "zowe-manifest.json",
                     "binary": true
+                }
+            }
+        },
+        "caching": {
+            "files": {
+                "caching-service/build/libs/caching-service.jar": {
+                    "target": "caching-service.jar",
+                    "binary": true
+                },
+                "../api-layer-deploy/apiml.keystore.p12": {
+                    "target": "keystore/keystore.p12",
+                    "binary": true
+                },
+                "../api-layer-deploy/apiml.truststore.p12": {
+                    "target": "keystore/truststore.p12",
+                    "binary": true
+                },
+                "config/zowe-api-dev/run-wrapper.sh": {
+                    "target": "run-wrapper.sh",
+                    "binary": false
+                },
+                "config/zowe-api-dev/caching_start_static.sh": {
+                    "target": "start.sh",
+                    "binary": false
                 }
             }
         }
