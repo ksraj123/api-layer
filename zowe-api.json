@@ -37,6 +37,11 @@
     "jobTemplatePath": "config/zowe-api-dev/template-bpxbatch.jcl",
     "jobPath": "build/api.jcl",
 
+    "stcTemplatePath": "config/zowe-api-dev/template-stc-bpxbatch.jcl",
+    "defaultStcProclib": "MFAAS.USER.PROCLIB",
+    "defaultStcName": "SDKAPIML",
+    "stcPath": "build/stc.jcl",
+
     "configurations": {
         "zos": {
             "files": {
@@ -58,6 +63,10 @@
                 },
                 "../api-layer-deploy/zosmf.yml": {
                     "target": "apidef/zosmf.yml",
+                    "binary": true
+                },
+                "../api-layer-deploy/endevor.yml": {
+                    "target": "apidef/endevor.yml",
                     "binary": true
                 },
                 "apiml-common/src/test/resources/zowe.version/zowe-manifest.json": {
