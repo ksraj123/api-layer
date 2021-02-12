@@ -164,14 +164,17 @@ task runAllIntegrationTests(type: Test) {
     group "Integration tests"
     description "Run all integration tests"
 
-    dependsOn startUpCheck, runAllIntegrationTestsNormal
-    tasks.findByName('runAllIntegrationTestsNormal').mustRunAfter 'startUpCheck'
+    dependsOn startUpCheck
+
+    //dependsOn startUpCheck, runAllIntegrationTestsNormal
+    //tasks.findByName('runAllIntegrationTestsNormal').mustRunAfter 'startUpCheck'
     String itags = System.getProperty("includeTags") ?
         System.getProperty("includeTags") : 'zOSMFAuthTest'
     systemProperties System.properties
     useJUnitPlatform {
         includeTags(
-            itags
+            //itags
+            'zOSMFAuthTest'
         )
     }
     outputs.upToDateWhen { false }

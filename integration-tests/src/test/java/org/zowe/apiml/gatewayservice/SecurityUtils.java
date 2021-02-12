@@ -16,18 +16,12 @@ import org.apache.http.conn.ssl.DefaultHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.ssl.SSLContexts;
 import org.zowe.apiml.security.common.login.LoginRequest;
-import org.zowe.apiml.util.config.ConfigReader;
-import org.zowe.apiml.util.config.GatewayServiceConfiguration;
-import org.zowe.apiml.util.config.TlsConfiguration;
-import org.zowe.apiml.util.config.ZosmfServiceConfiguration;
+import org.zowe.apiml.util.config.*;
 
 import javax.net.ssl.SSLContext;
 import java.io.File;
 import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
+import java.security.*;
 import java.security.cert.CertificateException;
 
 import static io.restassured.RestAssured.given;
@@ -90,12 +84,12 @@ public class SecurityUtils {
     public static String gatewayToken(String username, String password) {
         LoginRequest loginRequest = new LoginRequest(username, password);
 
-        return given()
+        return given().relaxedHTTPSValidation()
             .contentType(JSON)
             .body(loginRequest)
-            .when()
+            .when().log().all()
             .post(getGatewayUrl(GATEWAY_LOGIN_ENDPOINT))
-            .then()
+            .then().log().all()
             .statusCode(is(SC_NO_CONTENT))
             .cookie(GATEWAY_TOKEN_COOKIE_NAME, not(isEmptyString()))
             .extract().cookie(GATEWAY_TOKEN_COOKIE_NAME);
@@ -124,9 +118,9 @@ public class SecurityUtils {
     public static void logoutOnGateway(String url, String jwtToken) {
         given()
             .cookie(GATEWAY_TOKEN_COOKIE_NAME, jwtToken)
-            .when()
+            .when().log().all()
             .post(url)
-            .then()
+            .then().log().all()
             .statusCode(is(SC_NO_CONTENT));
     }
 

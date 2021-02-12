@@ -41,9 +41,9 @@ abstract class LogoutTest {
 
         given()
             .header(HttpHeaders.AUTHORIZATION, "Bearer " + jwt)
-            .when()
+            .when().log().all()
             .get(SecurityUtils.getGatewayUrl(QUERY_ENDPOINT))
-            .then()
+            .then().log().all()
             .statusCode(status.value());
     }
 
@@ -73,9 +73,9 @@ abstract class LogoutTest {
     protected void assertLogout(String url, String jwtToken, int expectedStatusCode) {
         given()
             .cookie(COOKIE_NAME, jwtToken)
-            .when()
+            .when().log().all()
             .post(url)
-            .then()
+            .then().log().all()
             .statusCode(is(expectedStatusCode));
     }
 }
