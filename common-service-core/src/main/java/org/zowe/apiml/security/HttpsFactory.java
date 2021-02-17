@@ -274,14 +274,7 @@ public class HttpsFactory {
         builder.withReadTimeout(5000);
         // See:
         // https://github.com/Netflix/eureka/blob/master/eureka-core/src/main/java/com/netflix/eureka/transport/JerseyReplicationClient.java#L160
-        if (eurekaServerUrl.startsWith("http://")) {
-            apimlLog.log("org.zowe.apiml.common.insecureHttpWarning");
-        } else {
-            System.setProperty("com.netflix.eureka.shouldSSLConnectionsUseSystemSocketFactory", "true");
-            setSystemSslProperties();
-            builder.withCustomSSL(createSecureSslContext());
-            builder.withHostnameVerifier(createHostnameVerifier());
-        }
+
         return builder;
     }
 }
