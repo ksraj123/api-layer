@@ -37,6 +37,7 @@ class WebSecurityTest {
     private final EnvironmentConfiguration environmentConfiguration = ConfigReader.environmentConfiguration();
 
     private String caching_url;
+    private static final String CERT_HEADER_NAME = "X-Certificate-DistinguishedName";
 
     @BeforeAll
     static void setup() {
@@ -69,7 +70,7 @@ class WebSecurityTest {
     }
 
     @Nested
-    class calledWithTokenAndHeader {
+    class calledWithHeader {
 
         @BeforeEach
         void setUp() {
@@ -79,19 +80,12 @@ class WebSecurityTest {
         @Test
         void cachingApiEndpointsAccessible() {
             given()
-                .header(HEADER_NAME, "value")
-                .cookie(COOKIE_NAME, jwtToken)
+                .header(CERT_HEADER_NAME, "value")
                 .when().get(caching_url + CACHING_PATH)
                 .then().statusCode(HttpStatus.OK.value());
-
-//            given()
-//                .cookie(COOKIE_NAME, jwtToken)
-//                .when().get(caching_url + CACHING_PATH)
-//                .then().statusCode(HttpStatus.UNAUTHORIZED.value());
-
             given()
                 .when().get(caching_url + CACHING_PATH)
-                .then().statusCode(HttpStatus.BAD_REQUEST.value());
+                .then().statusCode(HttpStatus.UNAUTHORIZED.value());
         }
     }
 
