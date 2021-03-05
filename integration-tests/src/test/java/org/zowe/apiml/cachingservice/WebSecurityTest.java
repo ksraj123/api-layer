@@ -30,6 +30,7 @@ class WebSecurityTest {
     private static final String HEALTH_PATH = "/cachingservice/application/health";
     private static final String INFO_PATH = "/cachingservice/application/info";
     private static final String APIDOC_PATH = "/cachingservice/v2/api-docs";
+    private static final String HEADER_NAME = "X-Certificate-DistinguishedName";
 
     private final static String COOKIE_NAME = "apimlAuthenticationToken";
     private static String jwtToken = SecurityUtils.gatewayToken();
@@ -68,7 +69,7 @@ class WebSecurityTest {
     }
 
     @Nested
-    class calledWithToken {
+    class calledWithTokenAndHeader {
 
         @BeforeEach
         void setUp() {
@@ -78,9 +79,16 @@ class WebSecurityTest {
         @Test
         void cachingApiEndpointsAccessible() {
             given()
+                .header(HEADER_NAME, "value")
                 .cookie(COOKIE_NAME, jwtToken)
                 .when().get(caching_url + CACHING_PATH)
                 .then().statusCode(HttpStatus.OK.value());
+
+//            given()
+//                .cookie(COOKIE_NAME, jwtToken)
+//                .when().get(caching_url + CACHING_PATH)
+//                .then().statusCode(HttpStatus.UNAUTHORIZED.value());
+
             given()
                 .when().get(caching_url + CACHING_PATH)
                 .then().statusCode(HttpStatus.BAD_REQUEST.value());

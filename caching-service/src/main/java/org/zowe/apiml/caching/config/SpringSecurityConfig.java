@@ -16,6 +16,7 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -37,6 +38,9 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
             .headers().httpStrictTransportSecurity().disable()
             .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and()
-            .authorizeRequests().antMatchers("/**").permitAll();
+            .authorizeRequests().antMatchers("/**").authenticated();
+
+        http.addFilterBefore(new CertificateHeaderFilter(), UsernamePasswordAuthenticationFilter.class);
+
         }
 }
