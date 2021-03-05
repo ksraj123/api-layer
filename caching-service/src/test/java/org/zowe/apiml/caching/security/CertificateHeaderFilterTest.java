@@ -8,7 +8,7 @@
  * Copyright Contributors to the Zowe Project.
  */
 
-package org.zowe.apiml.caching.config;
+package org.zowe.apiml.caching.security;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.*;

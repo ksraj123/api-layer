@@ -14,9 +14,6 @@ import io.restassured.RestAssured;
 import io.restassured.config.SSLConfig;
 import org.junit.jupiter.api.*;
 import org.springframework.http.HttpStatus;
-import org.zowe.apiml.gatewayservice.SecurityUtils;
-import org.zowe.apiml.util.config.ConfigReader;
-import org.zowe.apiml.util.config.EnvironmentConfiguration;
 import org.zowe.apiml.util.service.DiscoveryUtils;
 
 import java.util.List;
@@ -30,11 +27,6 @@ class WebSecurityTest {
     private static final String HEALTH_PATH = "/cachingservice/application/health";
     private static final String INFO_PATH = "/cachingservice/application/info";
     private static final String APIDOC_PATH = "/cachingservice/v2/api-docs";
-    private static final String HEADER_NAME = "X-Certificate-DistinguishedName";
-
-    private final static String COOKIE_NAME = "apimlAuthenticationToken";
-    private static String jwtToken = SecurityUtils.gatewayToken();
-    private final EnvironmentConfiguration environmentConfiguration = ConfigReader.environmentConfiguration();
 
     private String caching_url;
     private static final String CERT_HEADER_NAME = "X-Certificate-DistinguishedName";
