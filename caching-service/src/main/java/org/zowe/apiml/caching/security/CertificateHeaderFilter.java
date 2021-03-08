@@ -10,6 +10,7 @@
 
 package org.zowe.apiml.caching.security;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken;
@@ -21,13 +22,27 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+
+@RequiredArgsConstructor
 public class CertificateHeaderFilter extends OncePerRequestFilter {
+
+    private final ApprovedCertificateList approvedCertificateList;
+
+    public static final String CERT_HEADER_NAME = "X-Certificate-DistinguishedName";
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        Authentication auth = new PreAuthenticatedAuthenticationToken("user", "user");
-        auth.setAuthenticated(true);
-        SecurityContextHolder.getContext().setAuthentication(auth);
+
+        String header;
+        if ((header = request.getHeader(CERT_HEADER_NAME)) != null && !header.isEmpty()) {
+            for (String approved : approvedCertificateList.getApprovedCertificates()) {
+                if (header.equals(approved)) {
+                    Authentication auth = new PreAuthenticatedAuthenticationToken("user", "user");
+                    auth.setAuthenticated(true);
+                    SecurityContextHolder.getContext().setAuthentication(auth);
+                }
+            }
+        }
         filterChain.doFilter(request, response);
     }
 }

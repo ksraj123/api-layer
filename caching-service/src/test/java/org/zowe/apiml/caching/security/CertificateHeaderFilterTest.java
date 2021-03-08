@@ -10,7 +10,7 @@
 
 package org.zowe.apiml.caching.security;
 
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.mock.web.*;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -25,7 +25,8 @@ import static org.mockito.Mockito.*;
 
 class CertificateHeaderFilterTest {
 
-    CertificateHeaderFilter underTest = new CertificateHeaderFilter();
+    ApprovedCertificateList approvedCertificateList = ApprovedCertificateList.of("cert1", "authorizeme");
+    CertificateHeaderFilter underTest = new CertificateHeaderFilter(approvedCertificateList);
     MockHttpServletRequest request = new MockHttpServletRequest();
     MockHttpServletResponse response = new MockHttpServletResponse();
     MockFilterChain filterChain = new MockFilterChain();
@@ -37,11 +38,43 @@ class CertificateHeaderFilterTest {
         verify(spyChain,times(1)).doFilter(request, response);
     }
 
-    @Test
-    void authorizesEveryRequest() throws ServletException, IOException {
-        assertNull(SecurityContextHolder.getContext().getAuthentication());
-        underTest.doFilterInternal(request, response, filterChain);
-        assertNotNull(SecurityContextHolder.getContext().getAuthentication());
-        assertThat(SecurityContextHolder.getContext().getAuthentication().isAuthenticated(), is(true));
+    @Nested
+    class WhenCalledWithHeader{
+
+        @BeforeEach
+        void clearContext() {
+            SecurityContextHolder.clearContext();
+            assertNull(SecurityContextHolder.getContext().getAuthentication());
+        }
+
+        @Test
+        void noAuthorizationWithoutHeader() throws ServletException, IOException {
+            underTest.doFilterInternal(request, response, filterChain);
+            assertNull(SecurityContextHolder.getContext().getAuthentication());
+        }
+
+        @Test
+        void noAuthorizationWithAnyHeader() throws ServletException, IOException {
+            request.addHeader("myHeader", "myValue");
+            underTest.doFilterInternal(request, response, filterChain);
+            assertNull(SecurityContextHolder.getContext().getAuthentication());
+        }
+
+        @Test
+        void noAuthorizationWithEmptyHeader() throws ServletException, IOException {
+            request.addHeader(CertificateHeaderFilter.CERT_HEADER_NAME, "");
+            underTest.doFilterInternal(request, response, filterChain);
+            assertNull(SecurityContextHolder.getContext().getAuthentication());
+        }
+
+        @Test
+        void authorizationWithCorrectValue() throws ServletException, IOException {
+            request.addHeader(CertificateHeaderFilter.CERT_HEADER_NAME, "authorizeme");
+            underTest.doFilterInternal(request, response, filterChain);
+            assertNotNull(SecurityContextHolder.getContext().getAuthentication());
+            assertThat(SecurityContextHolder.getContext().getAuthentication().isAuthenticated(), is(true));
+        }
+
     }
+
 }

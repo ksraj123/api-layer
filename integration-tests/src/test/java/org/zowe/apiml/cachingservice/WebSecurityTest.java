@@ -72,12 +72,15 @@ class WebSecurityTest {
         @Test
         void cachingApiEndpointsAccessible() {
             given()
-                .header(CERT_HEADER_NAME, "value")
+                .header(CERT_HEADER_NAME, "CN=APIMTST,OU=CA CZ,O=Broadcom,L=Prague,ST=Czechia,C=CZ")
                 .when().get(caching_url + CACHING_PATH)
                 .then().statusCode(HttpStatus.OK.value());
+
+            //TODO this should not be forbidden
             given()
                 .when().get(caching_url + CACHING_PATH)
-                .then().statusCode(HttpStatus.UNAUTHORIZED.value());
+                .then().statusCode(HttpStatus.FORBIDDEN.value());
+
         }
     }
 

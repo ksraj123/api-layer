@@ -10,6 +10,7 @@
 
 package org.zowe.apiml.caching.security;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
@@ -20,7 +21,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
+
+    private final ApprovedCertificateList approvedCertificateList;
 
     @Override
     public void configure(WebSecurity web) throws Exception {
@@ -40,7 +44,7 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
             .and()
             .authorizeRequests().antMatchers("/**").authenticated();
 
-        http.addFilterBefore(new CertificateHeaderFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(new CertificateHeaderFilter(approvedCertificateList), UsernamePasswordAuthenticationFilter.class);
 
         }
 }
