@@ -11,6 +11,7 @@
 package org.zowe.apiml.startup;
 
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.zowe.apiml.util.categories.EnvironmentCheck;
 import org.zowe.apiml.util.config.ConfigReader;
 import org.zowe.apiml.util.config.EnvironmentConfiguration;
@@ -22,6 +23,7 @@ import static org.hamcrest.core.Is.is;
 
 @EnvironmentCheck
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@EnabledIfSystemProperty(named = "environment.reason", matches = "environment_check")
 class CheckEnvironment {
 
     private String username;
