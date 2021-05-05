@@ -114,6 +114,8 @@ eureka:
     client:
         serviceUrl:
             defaultZone: ${apiml.discovery.allPeersUrls}
+    dashboard:
+        path: /application/eurekawebui
 
 ---
 spring:

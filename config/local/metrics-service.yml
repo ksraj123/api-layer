@@ -1,0 +1,31 @@
+spring.profiles.include: diag
+
+
+apiml:
+    service:
+        serviceId: metrics
+        hostname: localhost
+        port: 10019
+        serviceIpAddress: 127.0.0.1
+        discoveryServiceUrls: https://localhost:10011/eureka/
+
+spring:
+    output:
+        ansi:
+            enabled: always
+
+management:
+    endpoints:
+        web:
+            exposure:
+                include: hystrix.stream
+
+server:
+    ssl:
+        keyAlias: localhost
+        keyPassword: password
+        keyStore: keystore/localhost/localhost.keystore.p12
+        keyStorePassword: password
+        trustStore: keystore/localhost/localhost.truststore.p12
+        trustStorePassword: password
+        trustStoreType: PKCS12

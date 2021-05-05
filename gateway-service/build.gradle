@@ -3,6 +3,7 @@ buildscript {
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
         classpath("gradle.plugin.com.gorylenko.gradle-git-properties:gradle-git-properties:${gradleGitPropertiesVersion}")
+        classpath "org.springframework.cloud:spring-cloud-starter-hystrix:1.4.7.RELEASE"
     }
 }
 

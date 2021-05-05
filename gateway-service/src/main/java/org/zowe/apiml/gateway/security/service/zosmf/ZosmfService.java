@@ -40,6 +40,7 @@ import org.springframework.web.client.RestTemplate;
 import org.zowe.apiml.security.common.config.AuthConfigurationProperties;
 import org.zowe.apiml.security.common.error.ServiceNotAccessibleException;
 import org.zowe.apiml.security.common.token.TokenNotValidException;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 
 import javax.annotation.PostConstruct;
 import java.text.ParseException;
@@ -419,6 +420,7 @@ public class ZosmfService extends AbstractZosmfService {
         return new ZosmfService.AuthenticationResponse(tokens);
     }
 
+    @HystrixCommand(fallbackMethod = "getFallbackPublicKeys")
     public JWKSet getPublicKeys() {
         final String url = getURI(getZosmfServiceId()) + authConfigurationProperties.getZosmf().getJwtEndpoint();
 
@@ -430,6 +432,10 @@ public class ZosmfService extends AbstractZosmfService {
         } catch (HttpClientErrorException.NotFound nf) {
             log.debug("Cannot get public keys from z/OSMF", nf);
         }
+        return new JWKSet();
+    }
+
+    public JWKSet getFallbackPublicKeys() {
         return new JWKSet();
     }
 }

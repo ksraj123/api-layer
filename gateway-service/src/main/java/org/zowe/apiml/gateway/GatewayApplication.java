@@ -9,6 +9,7 @@
  */
 package org.zowe.apiml.gateway;
 
+import org.springframework.cloud.client.circuitbreaker.EnableCircuitBreaker;
 import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.zowe.apiml.gateway.ribbon.GatewayRibbonConfig;
 import org.zowe.apiml.product.monitoring.LatencyUtilsConfigInitializer;
@@ -18,7 +19,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.cloud.netflix.eureka.EnableEurekaClient;
-import org.springframework.cloud.netflix.hystrix.HystrixAutoConfiguration;
 import org.springframework.cloud.netflix.ribbon.RibbonClients;
 import org.springframework.cloud.netflix.zuul.EnableZuulProxy;
 import org.springframework.context.ApplicationListener;
@@ -31,7 +31,7 @@ import javax.annotation.Nonnull;
 
 @EnableZuulProxy
 @EnableWebSecurity
-@SpringBootApplication(exclude = HystrixAutoConfiguration.class)
+@SpringBootApplication
 @ComponentScan(
     value = {
         "org.zowe.apiml.gateway",
@@ -45,6 +45,7 @@ import javax.annotation.Nonnull;
 @EnableEurekaClient
 @EnableWebSocket
 @EnableAspectJAutoProxy
+@EnableCircuitBreaker
 public class GatewayApplication implements ApplicationListener<ApplicationReadyEvent> {
 
     public static void main(String[] args) {

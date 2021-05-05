@@ -6,7 +6,7 @@
         "doc": "docs"
     },
     "scripts": {
-        "api-layer": "concurrently --names \"GS,DS,AC,DC,ZO,CS\" -c cyan,yellow,white,blue,green npm:gateway-service npm:discovery-service npm:api-catalog-service npm:discoverable-client npm:mock-zosmf npm:caching-service",
+        "api-layer": "concurrently --names \"GS,DS,AC,DC,ZO,CS\" -c cyan,yellow,white,blue,green npm:gateway-service npm:discovery-service npm:api-catalog-service npm:discoverable-client npm:mock-zosmf npm:caching-service npm:metrics-service",
         "api-layer-ci": "concurrently --names \"GS,DS,AC,DC,ZO,CS,NS\" -c cyan,yellow,white,blue,green,red npm:gateway-service-thin npm:discovery-service-thin npm:api-catalog-service-thin npm:discoverable-client npm:mock-zosmf npm:caching-service npm:onboarding-enabler-nodejs-sample-app",
         "api-layer-core": "concurrently --names \"GW,DS,AC\" -c cyan,yellow,white npm:gateway-service npm:discovery-service npm:api-catalog-service",
         "api-layer-thin": "concurrently --names \"GW,DS,AC,DC,ZO,CS\" -c cyan,yellow,white,blue,green npm:gateway-service-thin npm:discovery-service-thin npm:api-catalog-service-thin npm:discoverable-client npm:mock-zosmf npm:caching-service",
@@ -27,6 +27,7 @@
         "discoverable-client": "java -jar discoverable-client/build/libs/discoverable-client.jar --spring.config.additional-location=file:./config/local/discoverable-client.yml",
         "discoverable-client-debug": "java -Xdebug -Xrunjdwp:transport=dt_socket,server=y,address=5012,suspend=n -jar discoverable-client/build/libs/discoverable-client.jar --spring.config.additional-location=file:./config/local/discoverable-client.yml",
         "onboarding-enabler-spring-v1-sample-app": "java -jar onboarding-enabler-spring-v1-sample-app/build/libs/enabler-springboot-1.5.9.RELEASE-sample.jar --spring.config.location=classpath:/,file:./config/local/onboarding-enabler-spring-v1-sample-app.yml",
+        "metrics-service": "java -jar metrics-service/build/libs/enabler-springboot-1.5.9.RELEASE-sample.jar --spring.config.location=classpath:/,file:./config/local/metrics-service.yml",
         "onboarding-enabler-nodejs-sample-app": "cd onboarding-enabler-nodejs-sample-app && npm start",
         "api-layer-multi": "concurrently --names \"GS1,GS2,DS1,DS2,AC1,DC1,ZM\" -c cyan,red,yellow,green,white,blue,orange npm:gateway-service-1 npm:gateway-service-2 npm:discovery-service-1 npm:discovery-service-2 npm:api-catalog-service-1 npm:discoverable-client-1 npm:mock-zosmf-1",
         "gateway-service-1": "java -Dloader.path=build/libs/api-layer-lite-lib-all.jar -jar gateway-service/build/libs/gateway-service-lite.jar --spring.config.additional-location=file:./config/local-multi/gateway-service-1.yml",

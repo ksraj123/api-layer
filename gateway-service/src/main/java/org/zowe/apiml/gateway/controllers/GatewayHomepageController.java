@@ -21,6 +21,7 @@ import org.zowe.apiml.product.version.BuildInfo;
 import org.zowe.apiml.product.version.BuildInfoDetails;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.zowe.apiml.constants.EurekaMetadataDefinition.*;
 
@@ -62,6 +63,7 @@ public class GatewayHomepageController {
     @GetMapping("/")
     public String home(Model model) {
         initializeCatalogAttributes(model);
+        initializeMetricsAttributes(model);
         initializeDiscoveryAttributes(model);
         initializeAuthenticationAttributes(model);
 
@@ -148,10 +150,42 @@ public class GatewayHomepageController {
         model.addAttribute("catalogStatusText", catalogStatusText);
     }
 
+    private void initializeMetricsAttributes(Model model) {
+        boolean metricsEnabled = true;
+        model.addAttribute("metricsEnabled", metricsEnabled);
+
+        boolean metricsLinkEnabled = false;
+        String metricsLink = null;
+        String metricsStatusText = "The Metrics service is not running";
+
+        String metricsIconName = "warning";
+
+        List<ServiceInstance> metricsServiceInstances = discoveryClient.getInstances("metrics");
+        boolean metricsUp = !metricsServiceInstances.isEmpty();
+
+        if (metricsUp && metricsEnabled) {
+            metricsLinkEnabled = true;
+            metricsIconName = SUCCESS_ICON_NAME;
+            metricsLink = "http://localhost:10019/metrics/hystrix";
+            metricsStatusText = "The Metrics service is running";
+        }
+
+        model.addAttribute("metricsLinkEnabled", metricsLinkEnabled);
+        model.addAttribute("metricsStatusText", metricsStatusText);
+        model.addAttribute("metricsIconName", metricsIconName);
+        model.addAttribute("metricsLink", metricsLink);
+    }
+
     private String getCatalogLink(ServiceInstance catalogInstance) {
         String gatewayUrl = catalogInstance.getMetadata().get(String.format("%s.ui-v1.%s", ROUTES, ROUTES_GATEWAY_URL));
         String serviceUrl = catalogInstance.getMetadata().get(String.format("%s.ui-v1.%s", ROUTES, ROUTES_SERVICE_URL));
         return serviceUrl + gatewayUrl;
+    }
+
+    private String getMetricsLink(ServiceInstance metricsInstance) {
+        Map<String,String> data = metricsInstance.getMetadata();
+        String serviceUrl = metricsInstance.getMetadata().get(String.format("%s.api-v1.%s", ROUTES, ROUTES_SERVICE_URL));
+        return serviceUrl;
     }
 
     private boolean authorizationServiceUp() {

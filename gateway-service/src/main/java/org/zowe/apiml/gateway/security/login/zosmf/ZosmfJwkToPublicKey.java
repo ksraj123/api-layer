@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
@@ -32,6 +33,7 @@ public class ZosmfJwkToPublicKey {
      * @return True when the file has been updated
      * @throws FileNotFoundException when the filename is invalid
      */
+    @HystrixCommand
     public boolean updateJwtPublicKeyFile(String zosmfUrl, String filename, String caAlias, String caKeyStore,
                                           String caKeyStoreType, char[] caKeyStorePassword, char[] caKeyPassword) throws FileNotFoundException {
         try {
