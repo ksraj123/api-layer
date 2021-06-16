@@ -18,8 +18,8 @@ logging:
     level:
         ROOT: INFO
         org.zowe.apiml: INFO
-        org.springframework: WARN
-        com.netflix: WARN
+        org.springframework: INFO
+        com.netflix: INFO
         com.netflix.discovery: ERROR
         com.netflix.config: ERROR
         com.netflix.discovery.shared.transport.decorator.RedirectingEurekaHttpClient: OFF
@@ -148,7 +148,7 @@ management:
         web:
             base-path: /application
             exposure:
-                include: '*'
+                include: hystrix.stream, health, info
     health:
         defaults:
             enabled: false
@@ -169,7 +169,7 @@ management:
         web:
             base-path: /application
             exposure:
-                include: '*'
+                include: hystrix.stream,health, info
 
 logging:
     level:
@@ -191,7 +191,7 @@ management:
         web:
             base-path: /application
             exposure:
-                include: "*"
+                include: hystrix.stream, health, info
 
 ---
 spring:

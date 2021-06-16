@@ -9,6 +9,9 @@
  */
 package org.zowe.apiml.apicatalog;
 
+import com.netflix.hystrix.contrib.metrics.eventstream.HystrixMetricsStreamServlet;
+import org.springframework.boot.web.servlet.ServletRegistrationBean;
+import org.springframework.context.annotation.Bean;
 import org.zowe.apiml.product.logging.annotations.EnableApimlLogger;
 import org.zowe.apiml.product.monitoring.LatencyUtilsConfigInitializer;
 import org.zowe.apiml.product.version.BuildInfo;
@@ -45,5 +48,14 @@ public class ApiCatalogApplication {
         app.setLogStartupInfo(false);
         new BuildInfo().logBuildInfo();
         app.run(args);
+    }
+
+    @Bean
+    public ServletRegistrationBean<HystrixMetricsStreamServlet> getServlet() {
+        HystrixMetricsStreamServlet metricsStreamServlet = new HystrixMetricsStreamServlet();
+        ServletRegistrationBean<HystrixMetricsStreamServlet> metricsRegistrationBean = new ServletRegistrationBean<>(metricsStreamServlet);
+        metricsRegistrationBean.addUrlMappings("/application/hystrix.stream");
+        metricsRegistrationBean.setName("HystrixMetricsStreamServlet");
+        return metricsRegistrationBean;
     }
 }
