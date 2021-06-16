@@ -49,6 +49,8 @@ dependencies {
     implementation(project(':apiml-security-common'))
     implementation libraries.spring_cloud_starter_zuul
     implementation libraries.spring_boot_starter_actuator
+    implementation libraries.spring_cloud_starter_hystrix
+    implementation libraries.spring_cloud_hystrix_dashboard
     implementation libraries.spring_boot_starter_web
     implementation libraries.spring_boot_starter_websocket
     implementation libraries.spring_boot_starter_thymeleaf

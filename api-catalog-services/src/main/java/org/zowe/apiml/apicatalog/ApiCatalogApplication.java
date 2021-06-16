@@ -20,6 +20,8 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.cloud.client.circuitbreaker.EnableCircuitBreaker;
+import org.springframework.cloud.netflix.hystrix.dashboard.EnableHystrixDashboard;
 
 @SpringBootApplication(exclude = HystrixAutoConfiguration.class)
 @EnableEurekaClient
@@ -33,6 +35,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableRetry
 @EnableAsync
 @EnableApimlLogger
+@EnableCircuitBreaker
+@EnableHystrixDashboard
 public class ApiCatalogApplication {
 
     public static void main(String[] args) {

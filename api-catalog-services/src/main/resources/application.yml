@@ -147,12 +147,18 @@ management:
     endpoints:
         web:
             base-path: /application
+            exposure:
+                include: '*'
     health:
         defaults:
             enabled: false
     endpoint:
         health:
             showDetails: always
+
+hystrix:
+    dashboard:
+        proxy-stream-allow-list: '*'
 
 ---
 spring:
@@ -163,7 +169,7 @@ management:
         web:
             base-path: /application
             exposure:
-                include: health,info,loggers
+                include: '*'
 
 logging:
     level:

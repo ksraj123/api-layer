@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.netflix.hystrix.contrib.javanica.annotation.HystrixCommand;
 
 /**
  * Main API for handling requests from the API Catalog UI, routed through the gateway
@@ -48,6 +49,7 @@ public class CatalogApiDocController {
      * @return api-doc info (as JSON)
      */
     @GetMapping(value = "/{serviceId}/{apiVersion}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @HystrixCommand()
     @ApiOperation(value = "Retrieves the API documentation for a specific service version",
         notes = "Returns the API documentation for a specific service {serviceId} and version {apiVersion}. When " +
             " the API documentation for the specified version is not found, the first discovered version will be used.",
