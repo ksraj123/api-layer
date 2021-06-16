@@ -117,7 +117,7 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
             .antMatchers("/static-api/**").authenticated()
             .antMatchers("/containers/**").authenticated()
             .antMatchers("/apidoc/**").authenticated()
-            .antMatchers("/application/health", "/application/info", "/application/hystrix.stream").permitAll()
+            .antMatchers("/application/health", "/application/info").permitAll()
             .antMatchers("/application/**").authenticated();
     }
 
