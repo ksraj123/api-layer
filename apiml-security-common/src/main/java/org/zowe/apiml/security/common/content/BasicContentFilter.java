@@ -49,12 +49,16 @@ public class BasicContentFilter extends AbstractSecureContentFilter {
      * @return the decoded credentials
      */
     public Optional<AbstractAuthenticationToken> extractContent(HttpServletRequest request) {
+        System.out.println(request.getRequestURI());
         return Optional.ofNullable(
             request.getHeader(HttpHeaders.AUTHORIZATION)
         ).filter(
             header -> header.startsWith(ApimlConstants.BASIC_AUTHENTICATION_PREFIX)
         ).map(
-            header -> header.replaceFirst(ApimlConstants.BASIC_AUTHENTICATION_PREFIX, "").trim()
+            header -> {
+                System.out.println(header);
+                return header.replaceFirst(ApimlConstants.BASIC_AUTHENTICATION_PREFIX, "").trim();
+            }
         )
             .filter(base64Credentials -> !base64Credentials.isEmpty())
             .map(this::mapBase64Credentials);

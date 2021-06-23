@@ -17,6 +17,8 @@ import org.springframework.context.ApplicationListener;
 import org.zowe.apiml.enable.EnableApiDiscovery;
 import org.zowe.apiml.product.logging.annotations.EnableApimlLogger;
 import org.zowe.apiml.product.service.ServiceStartupEventHandler;
+import org.springframework.cloud.client.circuitbreaker.EnableCircuitBreaker;
+import org.springframework.cloud.netflix.hystrix.dashboard.EnableHystrixDashboard;
 
 import javax.annotation.Nonnull;
 
@@ -24,6 +26,8 @@ import javax.annotation.Nonnull;
 @EnableApiDiscovery
 @EnableApimlLogger
 @Slf4j
+@EnableCircuitBreaker
+@EnableHystrixDashboard
 public class MetricsServiceApplication implements ApplicationListener<ApplicationReadyEvent> {
 
     public static void main(String[] args) {

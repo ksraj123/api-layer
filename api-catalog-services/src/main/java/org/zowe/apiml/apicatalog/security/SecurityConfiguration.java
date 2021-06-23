@@ -89,6 +89,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
             .defaultAuthenticationEntryPointFor(
                 handlerInitializer.getUnAuthorizedHandler(), new AntPathRequestMatcher("/**")
             )
+            .defaultAuthenticationEntryPointFor(
+                handlerInitializer.getUnAuthorizedHandler(), new AntPathRequestMatcher("/hystrix")
+            )
 
             .and()
             .sessionManagement()
@@ -117,7 +120,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
             .antMatchers("/static-api/**").authenticated()
             .antMatchers("/containers/**").authenticated()
             .antMatchers("/apidoc/**").authenticated()
-            .antMatchers("/application/health", "/application/info").permitAll()
+            .antMatchers("/hystrix").authenticated()
+            // .antMatchers("/application/hystrix.stream").authenticated()
+            .antMatchers("/application/health", "/application/info", "/application/hystrix.stream").permitAll()
             .antMatchers("/application/**").authenticated();
     }
 

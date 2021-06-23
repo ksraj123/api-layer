@@ -43,6 +43,8 @@ dependencies {
     implementation libraries.springFox
     implementation libraries.spring_boot_starter
     implementation libraries.spring_boot_starter_actuator
+    implementation libraries.spring_cloud_starter_hystrix
+    implementation libraries.spring_cloud_hystrix_dashboard
     implementation libraries.spring_boot_starter_web
     implementation libraries.spring_boot_starter_websocket
     implementation libraries.spring_boot_starter_validation

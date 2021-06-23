@@ -51,6 +51,7 @@ public class CookieContentFilter extends AbstractSecureContentFilter {
      * @return the {@link TokenAuthentication} object containing username and valid JWT token
      */
     public Optional<AbstractAuthenticationToken> extractContent(HttpServletRequest request) {
+        System.out.println(request.getRequestURI());
         Cookie[] cookies = request.getCookies();
         if (cookies == null) {
             return Optional.empty();
@@ -60,6 +61,10 @@ public class CookieContentFilter extends AbstractSecureContentFilter {
             .filter(cookie -> cookie.getName().equals(authConfigurationProperties.getCookieProperties().getCookieName()))
             .filter(cookie -> !cookie.getValue().isEmpty())
             .findFirst()
-            .map(cookie -> new TokenAuthentication(cookie.getValue()));
+            .map(cookie -> {
+                System.out.println(cookie.getName());
+                System.out.println(cookie.getValue());
+                return new TokenAuthentication(cookie.getValue());
+            });
     }
 }
